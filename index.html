@@ -3,293 +3,177 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gábor saját szakácskönyve 2026</title>
+  <title>Gábor szakácskönyve 2026</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: 100vh;
-      padding: 20px;
-    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; color: #333; padding: 20px; }
     .container { max-width: 1200px; margin: 0 auto; }
-    header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 40px 30px;
-      border-radius: 15px;
-      margin-bottom: 30px;
-      text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    h1 { font-size: 2.5em; margin-bottom: 10px; }
-    .controls {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .control-section {
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .search-box {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    .checkbox-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    label {
-      background: #f0f4ff;
-      padding: 6px 12px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 0.9em;
-      transition: 0.3s;
-      border: 1px solid #d0d7de;
-    }
-    label:has(input:checked) {
-      background: #667eea;
-      color: white;
-      border-color: #667eea;
-    }
-    input[type="checkbox"] { display: none; }
+    header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px 20px; border-radius: 15px; text-align: center; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     
-    .recipes {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 25px;
-    }
-    .recipe-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s;
-    }
+    .controls { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+    .search-box { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 16px; }
+    
+    .filter-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .filter-item { background: #e9ecef; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 0.9em; user-select: none; transition: 0.2s; border: 1px solid #dee2e6; }
+    .filter-item:hover { background: #dee2e6; }
+    .filter-item.active { background: #2a5298; color: white; border-color: #2a5298; }
+    .filter-item input { display: none; }
+
+    .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+    .recipe-card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; display: flex; flex-direction: column; }
     .recipe-card:hover { transform: translateY(-5px); }
-    .recipe-image {
-      width: 100%;
-      height: 180px;
-      background: #eee;
-      object-fit: cover;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 3em;
-    }
-    .recipe-content { padding: 20px; flex-grow: 1; }
-    .recipe-title { font-size: 1.3em; font-weight: bold; margin-bottom: 8px; color: #333; }
-    .recipe-meta { color: #667eea; font-weight: 500; font-size: 0.85em; margin-bottom: 10px; text-transform: uppercase; }
-    .tag-container { margin-bottom: 12px; }
-    .tag {
-      display: inline-block;
-      background: #e8f0fe;
-      color: #1a73e8;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      margin-right: 5px;
-      margin-bottom: 5px;
-    }
-    .recipe-ingredients {
-      font-size: 0.9em;
-      color: #555;
-      background: #f9f9f9;
-      padding: 10px;
-      border-radius: 6px;
-      margin-top: 10px;
-      border-left: 3px solid #667eea;
-    }
-    .recipe-link {
-      display: inline-block;
-      margin-top: 15px;
-      color: #764ba2;
-      text-decoration: none;
-      font-weight: bold;
-      border-bottom: 2px solid transparent;
-      transition: 0.3s;
-    }
-    .recipe-link:hover { border-bottom-color: #764ba2; }
-    .no-results { text-align: center; padding: 40px; grid-column: 1/-1; color: #666; }
+    .recipe-img { width: 100%; height: 200px; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 4em; }
+    .recipe-body { padding: 20px; flex-grow: 1; }
+    .recipe-title { font-size: 1.4em; font-weight: bold; margin-bottom: 10px; color: #1e3c72; }
+    .recipe-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; }
+    .recipe-tag { background: #f0f7ff; color: #0056b3; font-size: 0.75em; padding: 3px 8px; border-radius: 5px; border: 1px solid #cce5ff; }
     
-    @media (max-width: 768px) {
-      .controls { grid-template-columns: 1fr; }
-    }
+    .recipe-link { display: inline-block; background: #2a5298; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; margin-top: auto; transition: 0.3s; }
+    .recipe-link:hover { background: #1e3c72; }
+    
+    .no-results { grid-column: 1/-1; text-align: center; padding: 50px; font-size: 1.2em; color: #666; }
+    #loader { text-align: center; padding: 20px; font-weight: bold; color: #1e3c72; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <h1>🍳 Gábor szakácskönyve 2026</h1>
-      <p>Friss receptek a Google Táblázatból</p>
-    </header>
+<div class="container">
+  <header>
+    <h1>🍳 Gábor szakácskönyve 2026</h1>
+    <p>Saját válogatott receptjeim</p>
+  </header>
 
-    <div class="controls">
-      <div class="control-section">
-        <h3>🔍 Keresés</h3>
-        <input type="text" id="searchInput" class="search-box" placeholder="Név, hozzávaló vagy #hashtag...">
+  <div class="controls">
+    <input type="text" id="searchInput" class="search-box" placeholder="Keresés a receptek között...">
+    <div id="filterGrid" class="filter-grid">
       </div>
-      <div class="control-section">
-        <h3>🏷️ Kategória szűrő</h3>
-        <div class="checkbox-group" id="categoryFilter">
-          <em>Betöltés...</em>
-        </div>
-      </div>
-    </div>
-
-    <div id="recipesContainer" class="recipes">
-      <div class="no-results">Receptek betöltése a táblázatból...</div>
-    </div>
   </div>
 
-  <script>
-    const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?output=csv';
+  <div id="loader">Adatok szinkronizálása a Google Táblázatból...</div>
+  <div id="recipesContainer" class="recipes"></div>
+</div>
 
-    let allRecipes = [];
+<script>
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?output=csv';
 
-    // CSV Parser
-    function parseCSV(csvText) {
-      const lines = [];
-      let currentLine = [];
-      let currentField = '';
-      let inQuotes = false;
+  // Ezeket az oszlopokat keressük mint kategóriákat (ahol 'x' lehet)
+  const CATEGORY_COLUMNS = [
+    'Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Magyaros', 'Ázsiai', 'Mediterrán', 
+    'Köret', 'Saláta', 'Főétel', 'Reggeli/Vacsora', 'Leves', 'Édes desszert', 
+    'Sós desszert', 'Ital', 'Egyéb', 'Vegetáriánus', 'Csirke', 'Halak és rákok', 
+    'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'
+  ];
 
-      for (let i = 0; i < csvText.length; i++) {
-        const char = csvText[i];
-        if (char === '"') inQuotes = !inQuotes;
-        else if (char === ',' && !inQuotes) {
-          currentLine.push(currentField.trim());
-          currentField = '';
-        } else if ((char === '\r' || char === '\n') && !inQuotes) {
-          if (currentField || currentLine.length > 0) {
-            currentLine.push(currentField.trim());
-            lines.push(currentLine);
-            currentLine = [];
-            currentField = '';
-          }
-        } else {
-          currentField += char;
-        }
-      }
-      if (currentField || currentLine.length > 0) {
-        currentLine.push(currentField.trim());
-        lines.push(currentLine);
-      }
+  let allRecipes = [];
+  let activeFilters = new Set(CATEGORY_COLUMNS); // Alapértelmezetten minden be van kapcsolva
 
-      const headers = lines[0];
-      return lines.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((header, i) => {
-          obj[header] = row[i] || '';
-        });
-        return obj;
-      }).filter(r => r['Recept neve']);
-    }
+  function parseCSV(csvText) {
+    const rows = csvText.split(/\r?\n/).map(row => {
+      return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, '').trim());
+    });
+    const headers = rows[0];
+    return rows.slice(1).map(row => {
+      let obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    }).filter(r => r['Recept neve'] || Object.values(r)[0]);
+  }
 
-    async function loadRecipes() {
-      try {
-        const response = await fetch(SHEET_CSV_URL);
-        const text = await response.text();
-        allRecipes = parseCSV(text);
-        
-        renderFilters();
-        // Az első betöltéskor mindenkit mutatunk
-        filterRecipes(); 
-      } catch (err) {
-        console.error("Hiba:", err);
-        document.getElementById('recipesContainer').innerHTML = "Hiba az adatok elérésekor. Ellenőrizd a táblázat közzétételét!";
-      }
-    }
-
-    function renderFilters() {
-      const categories = [...new Set(allRecipes.map(r => r['Kategória']).filter(Boolean))].sort();
-      const filterDiv = document.getElementById('categoryFilter');
+  async function loadData() {
+    try {
+      const response = await fetch(SHEET_URL);
+      const text = await response.text();
+      allRecipes = parseCSV(text);
+      document.getElementById('loader').style.display = 'none';
       
-      if (categories.length === 0) {
-        filterDiv.innerHTML = '<em>Nincsenek kategóriák a táblázatban.</em>';
-        return;
+      createFilterButtons();
+      render();
+    } catch (err) {
+      document.getElementById('loader').innerText = "Hiba történt az adatok betöltésekor.";
+    }
+  }
+
+  function createFilterButtons() {
+    const grid = document.getElementById('filterGrid');
+    grid.innerHTML = CATEGORY_COLUMNS.map(cat => `
+      <label class="filter-item active" data-cat="${cat}">
+        <input type="checkbox" checked onchange="toggleFilter('${cat}', this)">
+        ${cat}
+      </label>
+    `).join('');
+  }
+
+  function toggleFilter(cat, checkbox) {
+    const label = checkbox.parentElement;
+    if (checkbox.checked) {
+      activeFilters.add(cat);
+      label.classList.add('active');
+    } else {
+      activeFilters.delete(cat);
+      label.classList.remove('active');
+    }
+    render();
+  }
+
+  function render() {
+    const container = document.getElementById('recipesContainer');
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    
+    const filtered = allRecipes.filter(r => {
+      // Kereső szűrés
+      const matchesSearch = !searchTerm || 
+        (r['Recept neve'] || '').toLowerCase().includes(searchTerm) ||
+        (r['Hozzávalók'] || '').toLowerCase().includes(searchTerm);
+
+      // Kategória szűrés (Logika: Ha egy aktív kategóriánál 'x' van, jelenjen meg)
+      // Ha semmi nincs kiválasztva, ne mutasson semmit, vagy ha minden ki van választva, mutasson mindent.
+      let matchesCategory = false;
+      if (activeFilters.size === 0) {
+        matchesCategory = false; 
+      } else {
+        // Megnézzük, hogy a recept 'x'-elt oszlopai közül legalább egy benne van-e az aktív szűrőkben
+        matchesCategory = CATEGORY_COLUMNS.some(cat => 
+          activeFilters.has(cat) && (r[cat] || '').toLowerCase() === 'x'
+        );
       }
 
-      filterDiv.innerHTML = categories.map(cat => `
-        <label>
-          <input type="checkbox" value="${cat}" onchange="filterRecipes()">
-          ${cat}
-        </label>
-      `).join('');
+      // Speciális eset: Ha a táblázatban egyetlen kategória sincs beikszelve a receptnél, 
+      // de a keresőnek megfelel, akkor is mutassuk? Inkább csak a kategóriákra hagyatkozzunk.
+      
+      return matchesSearch && matchesCategory;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="no-results">Nincs a választott szűrőknek megfelelő recept.</div>';
+      return;
     }
 
-    function renderRecipes(recipes) {
-      const container = document.getElementById('recipesContainer');
-      if (recipes.length === 0) {
-        container.innerHTML = '<div class="no-results">Nincs a keresésnek megfelelő recept.</div>';
-        return;
-      }
+    container.innerHTML = filtered.map(r => {
+      const tags = CATEGORY_COLUMNS.filter(cat => (r[cat] || '').toLowerCase() === 'x');
+      const img = r['Kép'] ? `<img src="${r['Kép']}" class="recipe-img" alt="recept">` : `<div class="recipe-img">🥘</div>`;
 
-      container.innerHTML = recipes.map(r => {
-        const img = r['Kép'] ? `<img src="${r['Kép']}" class="recipe-image" alt="Recept">` : `<div class="recipe-image">🍽️</div>`;
-        
-        return `
-          <div class="recipe-card">
-            ${img}
-            <div class="recipe-content">
-              <div class="recipe-meta">${r['Kategória'] || 'Egyéb'} ${r['Cuisine'] ? ' | ' + r['Cuisine'] : ''}</div>
-              <div class="recipe-title">${r['Recept neve']}</div>
-              
-              <div class="tag-container">
-                ${r['#Hashtag'] ? r['#Hashtag'].split(' ').map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
-                ${String(r['Gyors']).toUpperCase() === 'IGEN' ? '<span class="tag" style="background:#fff3cd; color:#856404;">⚡ Gyors</span>' : ''}
-                ${String(r['Egyszerű']).toUpperCase() === 'IGEN' ? '<span class="tag" style="background:#d4edda; color:#155724;">✅ Egyszerű</span>' : ''}
-              </div>
-
-              <div class="recipe-ingredients">
-                <strong>Hozzávalók:</strong><br>
-                ${r['Hozzávalók'] ? r['Hozzávalók'].substring(0, 120) + '...' : 'Részletek a linken.'}
-              </div>
-
-              ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás (${r['Platform'] || 'Forrás'}) →</a>` : ''}
+      return `
+        <div class="recipe-card">
+          ${img}
+          <div class="recipe-body">
+            <div class="recipe-title">${r['Recept neve'] || Object.values(r)[0]}</div>
+            <div class="recipe-tags">
+              ${tags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}
             </div>
+            <p style="font-size: 0.85em; color: #666; margin-bottom: 15px;">
+              ${(r['Hozzávalók'] || '').substring(0, 80)}...
+            </p>
+            ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Recept megnyitása →</a>` : ''}
           </div>
-        `;
-      }).join('');
-    }
+        </div>
+      `;
+    }).join('');
+  }
 
-    function filterRecipes() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const selectedCats = Array.from(document.querySelectorAll('#categoryFilter input:checked')).map(i => i.value);
+  document.getElementById('searchInput').addEventListener('input', render);
 
-      const filtered = allRecipes.filter(r => {
-        const matchesSearch = 
-          (r['Recept neve'] || '').toLowerCase().includes(searchTerm) ||
-          (r['Hozzávalók'] || '').toLowerCase().includes(searchTerm) ||
-          (r['#Hashtag'] || '').toLowerCase().includes(searchTerm);
-        
-        // Ha semmi nincs kipipálva, akkor minden kategória jöhet
-        const matchesCat = selectedCats.length === 0 || selectedCats.includes(r['Kategória']);
-        
-        return matchesSearch && matchesCat;
-      });
+  loadData();
+</script>
 
-      renderRecipes(filtered);
-    }
-
-    document.getElementById('searchInput').addEventListener('input', filterRecipes);
-
-    loadRecipes();
-    // 5 percenként frissít a háttérben
-    setInterval(loadRecipes, 300000);
-  </script>
 </body>
 </html>
