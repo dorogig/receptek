@@ -204,7 +204,7 @@
   <script>
     // Google Sheets adatok
     const SHEET_ID = '1NCmfGRQnqnqm7ILqrd3ryE-F_2QegV10tJ6H9de37ek';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=617184698`;
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/$'https://raw.githubusercontent.com/dorogig/receptek/main/receptek-data.json';
 
     let allRecipes = [];
     let cuisineOptions = new Set();
@@ -232,7 +232,7 @@
       try {
         const response = await fetch(SHEET_URL);
         const csvText = await response.text();
-        allRecipes = parseCSV(csvText);
+        allRecipes = JSON.parse(csvText).receptek;
         setupFilters();
         displayRecipes(allRecipes);
       } catch (error) {
