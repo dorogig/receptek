@@ -1,0 +1,67 @@
+{
+  "receptek": [
+    {
+      "nev": "Brokkolis túró fiz",
+      "cuisine": "Egyéb",
+      "leírás": "Isteni finnom recepi a profilemon lévő linken, a blogomon található. Jó étvágyat!",
+      "hozzávalók": "Csirkés Lo Mein, Ezt imádni fogják! A pontos receptet a profilemon lévő linken, a blogomon található. Jó étvágyat!",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Olaszos jellegű",
+      "cuisine": "Egyéb",
+      "leírás": "Ez készített el egy teljesen új receptet!",
+      "hozzávalók": "Olaszos jellegű alapúlt összeállított",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Csirkés Lo Mein",
+      "cuisine": "Egyéb",
+      "leírás": "Ezt készítette el a profilomon lévő linken, a blogomon található.",
+      "hozzávalók": "Csirkés Lo Mein; Ezt imádni fogják!",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Kinai halásúál egy",
+      "cuisine": "Egyéb",
+      "leírás": "Ez készített el egy teljesen új receptet!",
+      "hozzávalók": "Kinai halásúál egy",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Tejszínes paprik",
+      "cuisine": "Hus",
+      "leírás": "Ez a laza recept a profilomon lévő linken.",
+      "hozzávalók": "Tejszínes paprika",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Zöldséges csirke",
+      "cuisine": "Leves",
+      "leírás": "Ez a recept a profilomon lévő linken, a blogomon található.",
+      "hozzávalók": "Zöldséges csirke",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Pesztós húsos",
+      "cuisine": "Egyéb",
+      "leírás": "Ezt ez készített el a profilomon lévő linken.",
+      "hozzávalók": "Pesztós húsos",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Sült kukoricás sü",
+      "cuisine": "Sutemény",
+      "leírás": "Ez a recept a profilomon lévő linken, a blogomon található.",
+      "hozzávalók": "Sült kukoricás sü",
+      "link": "https://vm.tiktok.com"
+    },
+    {
+      "nev": "Tojásos túrós lár",
+      "cuisine": "Egyéb",
+      "leírás": "Ez a recept a profilomon lévő linken, a blogomon található.",
+      "hozzávalók": "Tojásos túrós lár",
+      "link": "https://vm.tiktok.com"
+    }
+  ]
+}
