@@ -46,18 +46,21 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+      margin-top: 10px;
     }
     label {
       background: #f0f4ff;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 15px;
       cursor: pointer;
       font-size: 0.9em;
       transition: 0.3s;
+      border: 1px solid #d0d7de;
     }
     label:has(input:checked) {
       background: #667eea;
       color: white;
+      border-color: #667eea;
     }
     input[type="checkbox"] { display: none; }
     
@@ -73,16 +76,23 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.1);
       display: flex;
       flex-direction: column;
+      transition: transform 0.2s;
     }
+    .recipe-card:hover { transform: translateY(-5px); }
     .recipe-image {
       width: 100%;
       height: 180px;
-      background: #ddd;
+      background: #eee;
       object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3em;
     }
     .recipe-content { padding: 20px; flex-grow: 1; }
     .recipe-title { font-size: 1.3em; font-weight: bold; margin-bottom: 8px; color: #333; }
-    .recipe-category { color: #667eea; font-weight: 500; font-size: 0.9em; margin-bottom: 10px; }
+    .recipe-meta { color: #667eea; font-weight: 500; font-size: 0.85em; margin-bottom: 10px; text-transform: uppercase; }
+    .tag-container { margin-bottom: 12px; }
     .tag {
       display: inline-block;
       background: #e8f0fe;
@@ -100,15 +110,19 @@
       padding: 10px;
       border-radius: 6px;
       margin-top: 10px;
+      border-left: 3px solid #667eea;
     }
     .recipe-link {
-      display: block;
+      display: inline-block;
       margin-top: 15px;
       color: #764ba2;
       text-decoration: none;
       font-weight: bold;
+      border-bottom: 2px solid transparent;
+      transition: 0.3s;
     }
-    .no-results { text-align: center; padding: 40px; grid-column: 1/-1; }
+    .recipe-link:hover { border-bottom-color: #764ba2; }
+    .no-results { text-align: center; padding: 40px; grid-column: 1/-1; color: #666; }
     
     @media (max-width: 768px) {
       .controls { grid-template-columns: 1fr; }
@@ -120,22 +134,24 @@
   <div class="container">
     <header>
       <h1>🍳 Gábor szakácskönyve 2026</h1>
-      <p>Élő adatok közvetlenül a Google Táblázatból</p>
+      <p>Friss receptek a Google Táblázatból</p>
     </header>
 
     <div class="controls">
       <div class="control-section">
         <h3>🔍 Keresés</h3>
-        <input type="text" id="searchInput" class="search-box" placeholder="Recept, hozzávaló vagy hashtag...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Név, hozzávaló vagy #hashtag...">
       </div>
       <div class="control-section">
-        <h3>🏷️ Szűrés kategória alapján</h3>
-        <div class="checkbox-group" id="categoryFilter"></div>
+        <h3>🏷️ Kategória szűrő</h3>
+        <div class="checkbox-group" id="categoryFilter">
+          <em>Betöltés...</em>
+        </div>
       </div>
     </div>
 
     <div id="recipesContainer" class="recipes">
-      <div class="no-results">Receptek betöltése...</div>
+      <div class="no-results">Receptek betöltése a táblázatból...</div>
     </div>
   </div>
 
@@ -144,7 +160,7 @@
 
     let allRecipes = [];
 
-    // CSV feldolgozó ami kezeli az idézőjelek közötti vesszőket is
+    // CSV Parser
     function parseCSV(csvText) {
       const lines = [];
       let currentLine = [];
@@ -153,9 +169,8 @@
 
       for (let i = 0; i < csvText.length; i++) {
         const char = csvText[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
+        if (char === '"') inQuotes = !inQuotes;
+        else if (char === ',' && !inQuotes) {
           currentLine.push(currentField.trim());
           currentField = '';
         } else if ((char === '\r' || char === '\n') && !inQuotes) {
@@ -191,16 +206,23 @@
         allRecipes = parseCSV(text);
         
         renderFilters();
-        renderRecipes(allRecipes);
+        // Az első betöltéskor mindenkit mutatunk
+        filterRecipes(); 
       } catch (err) {
         console.error("Hiba:", err);
-        document.getElementById('recipesContainer').innerHTML = "Hiba történt az adatok betöltésekor.";
+        document.getElementById('recipesContainer').innerHTML = "Hiba az adatok elérésekor. Ellenőrizd a táblázat közzétételét!";
       }
     }
 
     function renderFilters() {
       const categories = [...new Set(allRecipes.map(r => r['Kategória']).filter(Boolean))].sort();
       const filterDiv = document.getElementById('categoryFilter');
+      
+      if (categories.length === 0) {
+        filterDiv.innerHTML = '<em>Nincsenek kategóriák a táblázatban.</em>';
+        return;
+      }
+
       filterDiv.innerHTML = categories.map(cat => `
         <label>
           <input type="checkbox" value="${cat}" onchange="filterRecipes()">
@@ -212,33 +234,32 @@
     function renderRecipes(recipes) {
       const container = document.getElementById('recipesContainer');
       if (recipes.length === 0) {
-        container.innerHTML = '<div class="no-results">Nincs a feltételeknek megfelelő recept.</div>';
+        container.innerHTML = '<div class="no-results">Nincs a keresésnek megfelelő recept.</div>';
         return;
       }
 
       container.innerHTML = recipes.map(r => {
-        // Alapértelmezett kép ha nincs megadva
-        const imgUrl = r['Kép'] || 'https://via.placeholder.com/300x180?text=Finom+Étel';
+        const img = r['Kép'] ? `<img src="${r['Kép']}" class="recipe-image" alt="Recept">` : `<div class="recipe-image">🍽️</div>`;
         
         return `
           <div class="recipe-card">
-            <img src="${imgUrl}" class="recipe-image" alt="${r['Recept neve']}">
+            ${img}
             <div class="recipe-content">
-              <div class="recipe-category">${r['Kategória']} | ${r['Cuisine']}</div>
+              <div class="recipe-meta">${r['Kategória'] || 'Egyéb'} ${r['Cuisine'] ? ' | ' + r['Cuisine'] : ''}</div>
               <div class="recipe-title">${r['Recept neve']}</div>
               
-              <div>
+              <div class="tag-container">
                 ${r['#Hashtag'] ? r['#Hashtag'].split(' ').map(tag => `<span class="tag">${tag}</span>`).join('') : ''}
-                ${r['Gyors'] === 'IGEN' ? '<span class="tag" style="background:#fff3cd; color:#856404;">⚡ Gyors</span>' : ''}
-                ${r['Egyszerű'] === 'IGEN' ? '<span class="tag" style="background:#d4edda; color:#155724;">✅ Egyszerű</span>' : ''}
+                ${String(r['Gyors']).toUpperCase() === 'IGEN' ? '<span class="tag" style="background:#fff3cd; color:#856404;">⚡ Gyors</span>' : ''}
+                ${String(r['Egyszerű']).toUpperCase() === 'IGEN' ? '<span class="tag" style="background:#d4edda; color:#155724;">✅ Egyszerű</span>' : ''}
               </div>
 
               <div class="recipe-ingredients">
                 <strong>Hozzávalók:</strong><br>
-                ${r['Hozzávalók'] ? r['Hozzávalók'].substring(0, 100) + '...' : 'Lásd a linken'}
+                ${r['Hozzávalók'] ? r['Hozzávalók'].substring(0, 120) + '...' : 'Részletek a linken.'}
               </div>
 
-              ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás a(z) ${r['Platform'] || 'forrás'} oldalon →</a>` : ''}
+              ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás (${r['Platform'] || 'Forrás'}) →</a>` : ''}
             </div>
           </div>
         `;
@@ -251,10 +272,11 @@
 
       const filtered = allRecipes.filter(r => {
         const matchesSearch = 
-          r['Recept neve'].toLowerCase().includes(searchTerm) ||
-          r['Hozzávalók'].toLowerCase().includes(searchTerm) ||
-          r['#Hashtag'].toLowerCase().includes(searchTerm);
+          (r['Recept neve'] || '').toLowerCase().includes(searchTerm) ||
+          (r['Hozzávalók'] || '').toLowerCase().includes(searchTerm) ||
+          (r['#Hashtag'] || '').toLowerCase().includes(searchTerm);
         
+        // Ha semmi nincs kipipálva, akkor minden kategória jöhet
         const matchesCat = selectedCats.length === 0 || selectedCats.includes(r['Kategória']);
         
         return matchesSearch && matchesCat;
@@ -265,8 +287,9 @@
 
     document.getElementById('searchInput').addEventListener('input', filterRecipes);
 
-    // Első betöltés
     loadRecipes();
+    // 5 percenként frissít a háttérben
+    setInterval(loadRecipes, 300000);
   </script>
 </body>
 </html>
