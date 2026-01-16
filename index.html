@@ -191,12 +191,12 @@
         async function loadRecipes() {
             try {
                 const response = await fetch(SHEET_URL);
-                if (!response.ok) throw new Error('Sheet hiba');
+                if (!response.ok) throw new Error('Sheet elérési hiba');
                 
                 const csv = await response.text();
                 allRecipes = parseCSV(csv);
                 
-                if (allRecipes.length === 0) throw new Error('Nincs adat!');
+                if (allRecipes.length === 0) throw new Error('Nincs recept az adatbázisban!');
                 
                 document.getElementById('loadingContainer').style.display = 'none';
                 document.getElementById('contentContainer').style.display = 'block';
@@ -205,9 +205,31 @@
                 
                 filterRecipes();
                 
+                setInterval(loadRecipes, 60000);
+                
             } catch (error) {
                 document.getElementById('loadingContainer').style.display = 'none';
                 document.getElementById('errorContainer').style.display = 'block';
                 document.getElementById('errorContainer').innerHTML = `
                     <div class="error">
-                        <strong>❌ Hiba:</strong> ${error.message}
+                        <strong>❌ Hiba:</strong> ${error.message}<br>
+                        <small>Ellenőrizd, hogy a Google Sheet nyilvános-e!</small><br>
+                        <button onclick="location.reload()" style="margin-top: 10px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Újrapróbálás
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        function filterRecipes() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedFilters = Array.from(document.querySelectorAll('input[name="filter"]:checked')).map(cb => cb.value);
+            
+            let filtered = allRecipes.filter(recipe => {
+                const matchesSearch = recipe.name.toLowerCase().includes(searchTerm) || 
+                                     recipe.ingredients.toLowerCase().includes(searchTerm);
+                const matchesFilters = selectedFilters.length === 0 || 
+                    selectedFilters.some(filter => recipe[filter]);
+                return matchesSearch && matchesFilters;
+            
