@@ -8,7 +8,7 @@
         :root {
             --primary: #2563eb;
             --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
+            --bg: #f1f5f9;
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
@@ -17,138 +17,119 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
-            font-family: 'Inter', system-ui, -apple-system, sans-serif; 
+            font-family: 'Inter', system-ui, sans-serif; 
             background-color: var(--bg); 
             color: var(--text-main);
-            line-height: 1.5;
             padding: 20px;
         }
 
-        .container { max-width: 1100px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; }
 
         header { 
             text-align: center; 
-            padding: 40px 20px; 
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 50px 20px; 
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: white;
-            border-radius: 20px;
+            border-radius: 24px;
             margin-bottom: 30px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
         }
 
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; letter-spacing: -0.025em; }
-        #status-bar { font-size: 0.9rem; opacity: 0.9; font-weight: 300; }
+        header h1 { font-size: 2.8rem; margin-bottom: 10px; font-weight: 800; }
 
         .controls { 
             background: var(--card-bg); 
             padding: 25px; 
-            border-radius: 16px; 
+            border-radius: 20px; 
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             margin-bottom: 30px;
         }
 
         .search-box { 
             width: 100%; 
-            padding: 14px 20px; 
+            padding: 16px 24px; 
             border: 2px solid #e2e8f0; 
-            border-radius: 12px; 
+            border-radius: 14px; 
             margin-bottom: 20px; 
             font-size: 1rem;
-            transition: border-color 0.2s;
             outline: none;
+            transition: 0.2s;
         }
 
-        .search-box:focus { border-color: var(--primary); }
+        .search-box:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
 
-        .filter-grid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .filter-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
         
         .filter-item { 
-            background: #f1f5f9; 
-            padding: 8px 18px; 
-            border-radius: 99px; 
+            background: #f8fafc; 
+            padding: 8px 16px; 
+            border-radius: 10px; 
             cursor: pointer; 
-            font-size: 0.85rem; 
-            font-weight: 500;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.8rem; 
+            font-weight: 600;
+            transition: 0.2s;
             border: 1px solid #e2e8f0;
             color: var(--text-muted);
-            user-select: none;
         }
-
-        .filter-item:hover { background: #e2e8f0; }
 
         .filter-item.active { 
             background: var(--primary); 
             color: white; 
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
 
         .filter-item input { display: none; }
 
         .recipes { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
             gap: 25px; 
         }
 
         .recipe-card { 
             background: var(--card-bg); 
-            border-radius: 16px; 
+            border-radius: 20px; 
             overflow: hidden; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             display: flex; 
             flex-direction: column; 
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid #f1f5f9;
+            transition: 0.3s;
+            height: 100%;
         }
 
-        .recipe-card:hover { 
-            transform: translateY(-4px); 
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
+        .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -10px rgba(0,0,0,0.1); }
 
         .recipe-img { 
             width: 100%; 
-            height: 180px; 
+            height: 200px; 
             object-fit: cover;
-            background: #edf2f7;
+            background: #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            font-size: 4rem;
         }
 
-        .recipe-content { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .recipe-content { padding: 24px; flex-grow: 1; display: flex; flex-direction: column; }
 
         .recipe-title { 
-            font-size: 1.25rem; 
-            font-weight: 700; 
+            font-size: 1.35rem; 
+            font-weight: 800; 
             margin-bottom: 12px; 
-            color: var(--text-main);
-            line-height: 1.3;
-        }
-
-        .recipe-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 15px; }
-
-        .recipe-tag { 
-            background: #eff6ff; 
-            color: #2563eb; 
-            font-size: 0.7rem; 
-            padding: 4px 10px; 
-            border-radius: 6px; 
-            font-weight: 600;
-            text-transform: uppercase;
+            color: #0f172a;
+            min-height: 3.4rem; /* Fix magasság a névnek */
+            display: flex;
+            align-items: center;
         }
 
         .recipe-desc { 
-            font-size: 0.9rem; 
+            font-size: 0.95rem; 
             color: var(--text-muted); 
             margin-bottom: 20px;
+            overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
-            overflow: hidden;
         }
 
         .recipe-link { 
@@ -156,19 +137,29 @@
             background: var(--primary); 
             color: white; 
             text-decoration: none; 
-            padding: 12px; 
-            border-radius: 10px; 
+            padding: 14px; 
+            border-radius: 12px; 
             text-align: center; 
-            font-weight: 600; 
-            transition: background 0.2s;
-            margin-top: auto;
+            font-weight: 700; 
+            margin-bottom: 15px;
         }
 
-        .recipe-link:hover { background: var(--primary-dark); }
+        /* Címkék a gomb alatt */
+        .recipe-tags { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 4px; 
+            padding-top: 15px;
+            border-top: 1px solid #f1f5f9;
+        }
 
-        @media (max-width: 640px) {
-            header h1 { font-size: 1.8rem; }
-            .recipes { grid-template-columns: 1fr; }
+        .recipe-tag { 
+            background: #f1f5f9; 
+            color: #475569; 
+            font-size: 0.65rem; 
+            padding: 3px 8px; 
+            border-radius: 5px; 
+            font-weight: 600;
         }
     </style>
 </head>
@@ -177,11 +168,11 @@
 <div class="container">
     <header>
         <h1>Gábor kedvenc receptjei</h1>
-        <div id="status-bar">Receptek szinkronizálása...</div>
+        <div id="status-bar">Adatok feldolgozása...</div>
     </header>
 
     <div class="controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="Keress név vagy hozzávaló alapján...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Keresés receptnév vagy hozzávaló alapján...">
         <div id="filterGrid" class="filter-grid"></div>
     </div>
 
@@ -191,43 +182,62 @@
 <script>
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?gid=617184698&single=true&output=csv';
 
+    // Az összes oszlopod, amit szűrőként használunk
     const CATEGORIES = [
-        'Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Magyaros', 'Ázsiai', 'Mediterrán', 
+        'Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Air Fryer', 'Magyaros', 'Ázsiai', 'Mediterrán', 
         'Köret', 'Saláta', 'Főétel', 'Reggeli/Vacsora', 'Leves', 'Édes desszert', 
-        'Sós desszert', 'Ital', 'Egyéb', 'Vegetáriánus', 'Csirke', 'Halak és rákok', 
-        'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'
+        'Sós desszert', 'Ital', 'Egyéb', 'Tippek és trükkök', 'Vegetáriánus', 'Csirke', 
+        'Halak és rákok', 'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'
     ];
 
     let allRecipes = [];
-    let enabledFilters = new Set(); // Üresen indul, ahogy kérted
+    let enabledFilters = new Set();
 
     async function init() {
         createFilterButtons();
-        const statusBar = document.getElementById('status-bar');
-
         try {
-            const response = await fetch(SHEET_URL + '&cache=' + Date.now());
+            const response = await fetch(SHEET_URL + '&cb=' + Date.now());
             const text = await response.text();
             
-            const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            
-            allRecipes = lines.slice(1).map(line => {
-                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
-                let obj = {};
-                headers.forEach((h, index) => obj[h] = values[index] || "");
-                return obj;
-            }).filter(r => (r['Recept neve'] || "").length > 1);
+            // CSV feldolgozás: Speciális logika a sorok elcsúszása ellen
+            const rows = [];
+            let currentRow = [];
+            let inQuotes = false;
+            let currentField = '';
 
-            // ABC sorrendbe rendezés név alapján
+            // Karakterenkénti beolvasás a macskakörmök közötti sortörések kezelésére
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i];
+                if (c === '"') { inQuotes = !inQuotes; }
+                else if (c === ',' && !inQuotes) {
+                    currentRow.push(currentField.trim());
+                    currentField = '';
+                } else if ((c === '\n' || c === '\r') && !inQuotes) {
+                    if (currentField || currentRow.length > 0) {
+                        currentRow.push(currentField.trim());
+                        rows.push(currentRow);
+                        currentRow = [];
+                        currentField = '';
+                    }
+                } else {
+                    currentField += c;
+                }
+            }
+            
+            const headers = rows[0];
+            allRecipes = rows.slice(1).map(row => {
+                let obj = {};
+                headers.forEach((h, i) => obj[h] = row[i] || "");
+                return obj;
+            }).filter(r => (r['Recept neve'] || "").length > 3 && isNaN(r['Recept neve'])); 
+            // Kiszűrjük a túl rövid címeket és a tisztán számokat (elcsúszott adatok)
+
             allRecipes.sort((a, b) => (a['Recept neve'] || "").localeCompare(b['Recept neve'] || "", 'hu'));
 
-            statusBar.innerText = `${allRecipes.length} válogatott recept`;
+            document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
             render();
-
         } catch (err) {
-            statusBar.innerText = "Hiba történt a receptek betöltésekor.";
-            console.error(err);
+            document.getElementById('status-bar').innerText = "Hiba a betöltéskor.";
         }
     }
 
@@ -249,48 +259,34 @@
 
     function render() {
         const container = document.getElementById('recipesContainer');
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const search = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
             const title = (r['Recept neve'] || '').toLowerCase();
             const ingredients = (r['Hozzávalók'] || '').toLowerCase();
-            const matchesSearch = title.includes(searchTerm) || ingredients.includes(searchTerm);
-
-            // Ha nincs bekapcsolva szűrő -> minden látszik
+            const matchesSearch = title.includes(search) || ingredients.includes(search);
             if (enabledFilters.size === 0) return matchesSearch;
-
-            // Ha van bekapcsolva szűrő -> Csak az látszik, amiben legalább egy 'x' benne van az aktívak közül
-            const matchesFilter = Array.from(enabledFilters).some(cat => 
-                (r[cat] || '').toLowerCase().trim() === 'x'
-            );
-
+            const matchesFilter = Array.from(enabledFilters).some(cat => (r[cat] || '').toLowerCase().trim() === 'x');
             return matchesSearch && matchesFilter;
         });
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #94a3b8;">Nincs ilyen recept a válogatásban.</div>';
-            return;
-        }
-
         container.innerHTML = filtered.map(r => {
-            const title = r['Recept neve'] || 'Névtelen recept';
-            const activeTags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
-            const imgUrl = r['Kép'] || '';
-            const imgHtml = imgUrl ? `<img src="${imgUrl}" class="recipe-img" alt="${title}">` : `<div class="recipe-img">🥘</div>`;
+            const title = r['Recept neve'];
+            const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
+            const img = r['Kép'] && r['Kép'].startsWith('http') ? `<img src="${r['Kép']}" class="recipe-img">` : `<div class="recipe-img">🥘</div>`;
             
             return `
-                <article class="recipe-card">
-                    ${imgHtml}
+                <div class="recipe-card">
+                    ${img}
                     <div class="recipe-content">
-                        <div class="recipe-tags">
-                            ${activeTags.slice(0, 3).map(t => `<span class="recipe-tag">${t}</span>`).join('')}
-                            ${activeTags.length > 3 ? `<span class="recipe-tag">+${activeTags.length - 3}</span>` : ''}
-                        </div>
                         <h2 class="recipe-title">${title}</h2>
-                        <p class="recipe-desc">${r['Hozzávalók'] || 'Hozzávalók hamarosan...'}</p>
+                        <p class="recipe-desc">${r['Leírás'] || r['Hozzávalók'] || ''}</p>
                         ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Recept megnyitása</a>` : ''}
+                        <div class="recipe-tags">
+                            ${tags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}
+                        </div>
                     </div>
-                </article>
+                </div>
             `;
         }).join('');
     }
