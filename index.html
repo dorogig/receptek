@@ -76,7 +76,6 @@
             align-items: start;
         }
 
-        /* --- DINAMIKUS KÁRTYA DESIGN --- */
         .recipe-card { 
             background: var(--card-bg); 
             border-radius: 24px; 
@@ -114,13 +113,12 @@
             font-weight: 800; 
             color: #0f172a;
             margin-bottom: 15px;
-            min-height: 4rem; /* Több hely a névnek */
+            min-height: 4.5rem; /* Biztonsági magasság a névnek */
             display: flex;
             align-items: flex-start;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
-        /* Rejtett részek alaphelyzetben */
         .recipe-details {
             max-height: 0;
             opacity: 0;
@@ -129,7 +127,7 @@
         }
 
         .recipe-card:hover .recipe-details {
-            max-height: 1000px; /* Elég nagy érték a tartalomnak */
+            max-height: 1500px;
             opacity: 1;
             margin-top: 15px;
             padding-top: 15px;
@@ -197,7 +195,6 @@
             const response = await fetch(SHEET_URL + '&cb=' + Date.now());
             const text = await response.text();
             
-            // CSV Feldolgozó
             const rows = [];
             let currentRow = [], inQuotes = false, currentField = '';
             for (let i = 0; i < text.length; i++) {
@@ -252,17 +249,29 @@
             const title = (r['Recept neve'] || '').toLowerCase();
             const ingredients = (r['Hozzávalók'] || '').toLowerCase();
             const description = (r['Leírás'] || '').toLowerCase();
-            const hashtag = (r['#Hashtag'] || '').toLowerCase(); // Hashtag keresés
+            const hashtag = (r['#Hashtag'] || '').toLowerCase();
             
             const matchesSearch = title.includes(search) || 
                                  ingredients.includes(search) || 
                                  description.includes(search) || 
                                  hashtag.includes(search);
 
+            // Ha nincs szűrő, csak a keresés számít
             if (enabledFilters.size === 0) return matchesSearch;
-            const matchesFilter = Array.from(enabledFilters).some(cat => (r[cat] || '').toLowerCase().trim() === 'x');
-            return matchesSearch && matchesFilter;
+
+            // SZIGORÚ SZŰRÉS (ÉS kapcsolat): 
+            // Minden aktív szűrőnek meg kell felelnie (tartalmaznia kell 'x'-et)
+            const matchesAllFilters = Array.from(enabledFilters).every(cat => 
+                (r[cat] || '').toLowerCase().trim() === 'x'
+            );
+
+            return matchesSearch && matchesAllFilters;
         });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #94a3b8;">Nincs ilyen receptünk. Próbálj kevesebb szűrőt beállítani!</div>';
+            return;
+        }
 
         container.innerHTML = filtered.map(r => {
             const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
