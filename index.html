@@ -16,12 +16,12 @@
         .filter-item.active { background: #2a5298; color: white; border-color: #2a5298; }
         .filter-item input { display: none; }
         .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .recipe-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding: 15px; }
+        .recipe-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.1); padding: 15px; display: flex; flex-direction: column; }
         .recipe-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; color: #1e3c72; }
         .recipe-tag { background: #f0f7ff; color: #0056b3; font-size: 0.7em; padding: 2px 6px; border-radius: 4px; border: 1px solid #cce5ff; margin: 2px; display: inline-block; }
         .recipe-link { display: block; background: #2a5298; color: white; text-decoration: none; padding: 10px; border-radius: 6px; text-align: center; font-weight: bold; margin-top: auto; }
-        #status-bar { text-align: center; font-weight: bold; margin-bottom: 10px; }
-        .debug-panel { background: #fff3cd; padding: 10px; border: 1px solid #ffeeba; border-radius: 8px; margin-bottom: 20px; font-family: monospace; font-size: 11px; display: none; }
+        #status-bar { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 0.9em; }
+        .debug-panel { background: #fff3cd; padding: 10px; border: 1px solid #ffeeba; border-radius: 8px; margin-bottom: 20px; font-family: monospace; font-size: 11px; }
     </style>
 </head>
 <body>
@@ -29,10 +29,10 @@
 <div class="container">
     <header>
         <h1>🍳 Gábor szakácskönyve 2026</h1>
-        <div id="status-bar">Adatok betöltése...</div>
+        <div id="status-bar">Adatok lekérése a Google-től...</div>
     </header>
 
-    <div id="debugPanel" class="debug-panel"></div>
+    <div id="debugPanel" class="debug-panel">Várakozás az oszlopnevekre...</div>
 
     <div class="controls">
         <input type="text" id="searchInput" class="search-box" placeholder="Keresés név vagy hozzávaló alapján...">
@@ -43,6 +43,7 @@
 </div>
 
 <script>
+    // FONTOS: Ez a link direkt a 'Receptek' fülre mutat (gid=617184698)
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?gid=617184698&single=true&output=csv';
 
     const CATEGORIES = [
@@ -55,43 +56,7 @@
     let allRecipes = [];
     let disabledFilters = new Set();
 
-    async function init() {
-        const statusBar = document.getElementById('status-bar');
-        const debugPanel = document.getElementById('debugPanel');
-
-        try {
-            const response = await fetch(SHEET_URL + '&cache=' + Date.now());
-            const text = await response.text();
-            
-            // CSV Feldolgozás
-            const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            
-            // Mutassuk meg mi jön a Google-től, ha baj van
-            debugPanel.style.display = "block";
-            debugPanel.innerText = "Észlelt oszlopok: " + headers.join(" | ");
-
-            allRecipes = lines.slice(1).map(line => {
-                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
-                let obj = {};
-                headers.forEach((h, i) => obj[h] = values[i] || "");
-                return obj;
-            });
-
-            if (allRecipes.length > 0) {
-                statusBar.innerText = `${allRecipes.length} sor betöltve.`;
-                createFilterButtons();
-                render();
-            } else {
-                statusBar.innerText = "Hiba: A táblázat üresnek tűnik.";
-            }
-
-        } catch (err) {
-            statusBar.innerText = "Hiba a letöltéskor!";
-            console.error(err);
-        }
-    }
-
+    // Először létrehozzuk a gombokat, hogy ne legyen üres az oldal
     function createFilterButtons() {
         const grid = document.getElementById('filterGrid');
         grid.innerHTML = CATEGORIES.map(cat => `
@@ -100,6 +65,41 @@
                 ${cat}
             </label>
         `).join('');
+    }
+
+    async function init() {
+        createFilterButtons();
+        const statusBar = document.getElementById('status-bar');
+        const debugPanel = document.getElementById('debugPanel');
+
+        try {
+            // Frissítés kényszerítése a cache elkerülésével
+            const response = await fetch(SHEET_URL + '&timestamp=' + Date.now());
+            const text = await response.text();
+            
+            const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+            if (lines.length === 0) {
+                statusBar.innerText = "Hiba: A táblázat nem küldött adatokat.";
+                return;
+            }
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            debugPanel.innerText = "Aktuális táblázat oszlopai: " + headers.join(" | ");
+
+            allRecipes = lines.slice(1).map(line => {
+                const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.trim().replace(/^"|"$/g, ''));
+                let obj = {};
+                headers.forEach((h, i) => obj[h] = values[i] || "");
+                return obj;
+            }).filter(r => (r['Recept neve'] || Object.values(r)[0] || "").length > 1);
+
+            statusBar.innerText = allRecipes.length + " recept sikeresen betöltve.";
+            render();
+
+        } catch (err) {
+            statusBar.innerText = "Hiba történt a betöltés közben.";
+            debugPanel.innerText = "Hiba részletei: " + err.message;
+        }
     }
 
     function toggleFilter(cat, checkbox) {
@@ -113,17 +113,23 @@
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
-            // Megpróbáljuk kitalálni a címet: vagy a "Recept neve" oszlop, vagy az első oszlop
             const title = (r['Recept neve'] || Object.values(r)[0] || '').toLowerCase();
-            const matchesSearch = title.includes(searchTerm);
+            const ingredients = (r['Hozzávalók'] || '').toLowerCase();
+            const matchesSearch = title.includes(searchTerm) || ingredients.includes(searchTerm);
 
-            // Csak akkor rejtjük el, ha a receptnek van olyan kategóriája ('x'), amit a user kikapcsolt
-            const isHidden = Array.from(disabledFilters).some(cat => 
+            // Ha minden szűrő aktív (semmi nincs disabled), mutassuk.
+            // Ha van kikapcsolt szűrő, csak akkor rejtsük el, ha a receptnél van 'x'.
+            const isHiddenByFilter = Array.from(disabledFilters).some(cat => 
                 (r[cat] || '').toLowerCase().trim() === 'x'
             );
 
-            return matchesSearch && !isHidden;
+            return matchesSearch && !isHiddenByFilter;
         });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 20px;">Nincs a feltételeknek megfelelő recept.</div>';
+            return;
+        }
 
         container.innerHTML = filtered.map(r => {
             const title = r['Recept neve'] || Object.values(r)[0];
@@ -136,7 +142,7 @@
                         ${activeTags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}
                     </div>
                     <p style="font-size: 0.85em; color: #666; margin-top: 10px;">
-                        ${(r['Hozzávalók'] || "").substring(0, 70)}...
+                        ${(r['Hozzávalók'] || "").substring(0, 60)}...
                     </p>
                     ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás →</a>` : ''}
                 </div>
@@ -144,6 +150,7 @@
         }).join('');
     }
 
+    document.getElementById('searchInput').addEventListener('input', render);
     init();
 </script>
 </body>
