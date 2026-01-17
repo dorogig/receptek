@@ -12,7 +12,6 @@
             --card-bg: #ffffff;
             --text-main: #1e293b;
             --text-muted: #64748b;
-            --accent: #f59e0b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,22 +31,7 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
             color: white;
             border-radius: 24px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .help-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            backdrop-filter: blur(5px);
+            margin-bottom: 40px;
         }
 
         .controls { 
@@ -101,6 +85,7 @@
             flex-direction: column; 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
+            height: fit-content;
             border: 1px solid #f1f5f9;
         }
 
@@ -144,7 +129,7 @@
         }
 
         .recipe-card:hover .recipe-details {
-            max-height: 1500px;
+            max-height: 2000px;
             opacity: 1;
             margin-top: 15px;
             padding-top: 15px;
@@ -168,49 +153,12 @@
 
         .recipe-tags { display: flex; flex-wrap: wrap; gap: 4px; }
         .recipe-tag { background: #f1f5f9; color: #64748b; font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; }
-
-        /* MODÁLIS ABLAK (HELP) */
-        #helpModal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 500px;
-            width: 100%;
-        }
-        .modal-content h3 { margin-bottom: 15px; color: var(--primary); }
-        .modal-content code { background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #e11d48; }
-        .close-modal { 
-            background: var(--primary); color: white; border: none; padding: 10px 20px; 
-            border-radius: 10px; cursor: pointer; margin-top: 20px; width: 100%;
-        }
     </style>
 </head>
 <body>
 
-<div id="helpModal">
-    <div class="modal-content">
-        <h3>📸 Hogyan adjunk hozzá képet?</h3>
-        <p>1. Töltsd fel a képet a <strong>postimages.org</strong>-ra.</p>
-        <p>2. A feltöltés után válaszd a <strong>"Direct Link" (Közvetlen link)</strong> opciót.</p>
-        <p>3. A linknek így kell kinéznie: <code>https://i.postimg.cc/.../foto.jpg</code></p>
-        <p>4. Ezt a tiszta linket másold be a Google Sheet <strong>Kép</strong> oszlopába.</p>
-        <button class="close-modal" onclick="document.getElementById('helpModal').style.display='none'">Értem!</button>
-    </div>
-</div>
-
 <div class="container">
     <header>
-        <button class="help-btn" onclick="document.getElementById('helpModal').style.display='flex'">Képfeltöltési segítség ℹ️</button>
         <h1>Gábor kedvenc receptjei</h1>
         <div id="status-bar">Szakácskönyv megnyitása...</div>
     </header>
@@ -240,14 +188,6 @@
         if (!url) return null;
         const match = url.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
         return (match && match[2].length === 11) ? `https://img.youtube.com/vi/${match[2]}/mqdefault.jpg` : null;
-    }
-
-    function getSocialThumb(url) {
-        if (!url) return null;
-        if (url.includes('tiktok.com') || url.includes('instagram.com') || url.includes('facebook.com')) {
-            return `https://unavatar.io/social/${encodeURIComponent(url)}`;
-        }
-        return null;
     }
 
     async function init() {
@@ -306,4 +246,58 @@
         const container = document.getElementById('recipesContainer');
         const search = document.getElementById('searchInput').value.toLowerCase();
         
-        const filtered
+        const filtered = allRecipes.filter(r => {
+            const title = (r['Recept neve'] || '').toLowerCase();
+            const ingredients = (r['Hozzávalók'] || '').toLowerCase();
+            const description = (r['Leírás'] || '').toLowerCase();
+            const hashtag = (r['#Hashtag'] || '').toLowerCase();
+            
+            const matchesSearch = title.includes(search) || ingredients.includes(search) || description.includes(search) || hashtag.includes(search);
+            if (enabledFilters.size === 0) return matchesSearch;
+            const matchesAllFilters = Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase().trim() === 'x');
+            return matchesSearch && matchesAllFilters;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #94a3b8;">Nincs találat.</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(r => {
+            const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
+            
+            // Kép tisztítás és hierarchia
+            let rawImg = (r['Kép'] || '').trim();
+            let cleanImg = rawImg.replace(/\[\/?img\]/g, '').replace(/\]/g, '').trim();
+            const ytThumb = getYoutubeThumb(r['URL']);
+            const finalImg = ytThumb || (cleanImg.startsWith('http') ? cleanImg : null);
+
+            return `
+                <div class="recipe-card">
+                    <div class="recipe-img-container">
+                        ${finalImg 
+                            ? `<img src="${finalImg}" class="recipe-img" onerror="this.parentElement.innerHTML='<div class=\'recipe-placeholder\'>🥘</div>'">` 
+                            : '<div class="recipe-placeholder">🥘</div>'}
+                    </div>
+                    <div class="recipe-content">
+                        <h2 class="recipe-title">${r['Recept neve']}</h2>
+                        ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
+                        <div class="recipe-details">
+                            <div class="section-title">Hozzávalók:</div>
+                            <div class="recipe-text">${r['Hozzávalók'] || 'Nincs megadva'}</div>
+                            ${r['Leírás'] ? `<div class="section-title">Leírás:</div><div class="recipe-text">${r['Leírás']}</div>` : ''}
+                            <div class="recipe-tags">
+                                ${tags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    init();
+</script>
+</body>
+</html>
