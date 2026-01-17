@@ -4,169 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gábor kedvenc receptjei</title>
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥘</text></svg>">
-
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-        }
-
+        :root { --primary: #2563eb; --primary-dark: #1d4ed8; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            font-family: 'Inter', system-ui, sans-serif; 
-            background-color: var(--bg); 
-            color: var(--text-main);
-            padding: 20px;
-        }
-
+        body { font-family: 'Inter', system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); padding: 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
-
-        header { 
-            text-align: center; 
-            padding: 50px 20px; 
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            color: white;
-            border-radius: 24px;
-            margin-bottom: 40px;
-        }
-
-        .controls { 
-            background: var(--card-bg); 
-            padding: 25px; 
-            border-radius: 20px; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            margin-bottom: 40px;
-        }
-
-        .search-box { 
-            width: 100%; 
-            padding: 16px 24px; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 14px; 
-            margin-bottom: 20px; 
-            font-size: 1.1rem;
-            outline: none;
-        }
-
+        header { text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; border-radius: 24px; margin-bottom: 40px; }
+        .controls { background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); margin-bottom: 40px; }
+        .search-box { width: 100%; padding: 16px 24px; border: 2px solid #e2e8f0; border-radius: 14px; margin-bottom: 20px; font-size: 1.1rem; outline: none; }
         .filter-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-        
-        .filter-item { 
-            background: #f1f5f9; 
-            padding: 8px 16px; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: 0.8rem; 
-            font-weight: 600;
-            border: 1px solid #e2e8f0;
-            color: var(--text-muted);
-            transition: 0.2s;
-        }
-
+        .filter-item { background: #f1f5f9; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: 1px solid #e2e8f0; color: var(--text-muted); transition: 0.2s; }
         .filter-item.active { background: var(--primary); color: white; border-color: var(--primary); }
         .filter-item input { display: none; }
-
-        .recipes { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 30px;
-            align-items: start;
-        }
-
-        .recipe-card { 
-            background: var(--card-bg); 
-            border-radius: 24px; 
-            overflow: hidden; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex; 
-            flex-direction: column; 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            height: fit-content;
-            border: 1px solid #f1f5f9;
-        }
-
-        .recipe-card:hover { 
-            transform: translateY(-5px);
-            box-shadow: 0 20px 30px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-
-        .recipe-img-container {
-            width: 100%;
-            height: 220px;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-
+        .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; align-items: start; }
+        .recipe-card { background: var(--card-bg); border-radius: 24px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; height: fit-content; border: 1px solid #f1f5f9; }
+        .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 20px 30px rgba(0,0,0,0.1); z-index: 10; }
+        .recipe-img-container { width: 100%; height: 220px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .recipe-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .recipe-placeholder { 
-            font-size: 4rem; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 100%; 
-            height: 100%; 
-            background: #f1f5f9;
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
-
+        .recipe-placeholder { font-size: 4rem; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background: #f1f5f9; position: absolute; top: 0; left: 0; }
         .recipe-content { padding: 20px; }
-
-        .recipe-title { 
-            font-size: 1.3rem; 
-            font-weight: 800; 
-            color: #0f172a;
-            margin-bottom: 15px;
-            min-height: 4.5rem;
-            display: flex;
-            align-items: flex-start;
-            line-height: 1.3;
-        }
-
-        .recipe-details {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: all 0.4s ease;
-        }
-
-        .recipe-card:hover .recipe-details {
-            max-height: 2000px;
-            opacity: 1;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #e2e8f0;
-        }
-
+        .recipe-title { font-size: 1.3rem; font-weight: 800; color: #0f172a; margin-bottom: 15px; min-height: 4.5rem; display: flex; align-items: flex-start; line-height: 1.3; }
+        .recipe-details { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s ease; }
+        .recipe-card:hover .recipe-details { max-height: 2000px; opacity: 1; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0; }
         .section-title { font-weight: 700; font-size: 0.85rem; color: var(--primary); text-transform: uppercase; margin-bottom: 5px; }
         .recipe-text { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px; white-space: pre-line; }
-
-        .recipe-link { 
-            display: block; 
-            background: var(--primary); 
-            color: white; 
-            text-decoration: none; 
-            padding: 12px; 
-            border-radius: 12px; 
-            text-align: center; 
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
+        .recipe-link { display: block; background: var(--primary); color: white; text-decoration: none; padding: 12px; border-radius: 12px; text-align: center; font-weight: 700; margin-bottom: 10px; }
         .recipe-tags { display: flex; flex-wrap: wrap; gap: 4px; }
         .recipe-tag { background: #f1f5f9; color: #64748b; font-size: 0.65rem; padding: 4px 8px; border-radius: 6px; font-weight: 600; }
     </style>
@@ -178,24 +41,16 @@
         <h1>Gábor kedvenc receptjei</h1>
         <div id="status-bar">Adatok betöltése...</div>
     </header>
-
     <div class="controls">
-        <input type="text" id="searchInput" class="search-box" placeholder="Keresés névben, hozzávalókban, leírásban vagy hashtagben...">
+        <input type="text" id="searchInput" class="search-box" placeholder="Keresés...">
         <div id="filterGrid" class="filter-grid"></div>
     </div>
-
     <div id="recipesContainer" class="recipes"></div>
 </div>
 
 <script>
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?gid=617184698&single=true&output=csv';
-
-    const CATEGORIES = [
-        'Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Air Fryer', 'Magyaros', 'Ázsiai', 'Mediterrán', 
-        'Köret', 'Saláta', 'Főétel', 'Reggeli/Vacsora', 'Leves', 'Édes desszert', 
-        'Sós desszert', 'Ital', 'Egyéb', 'Tippek és trükkök', 'Vegetáriánus', 'Csirke', 
-        'Halak és rákok', 'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'
-    ];
+    const CATEGORIES = ['Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Air Fryer', 'Magyaros', 'Ázsiai', 'Mediterrán', 'Köret', 'Saláta', 'Főétel', 'Reggeli/Vacsora', 'Leves', 'Édes desszert', 'Sós desszert', 'Ital', 'Egyéb', 'Tippek és trükkök', 'Vegetáriánus', 'Csirke', 'Halak és rákok', 'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'];
 
     let allRecipes = [];
     let enabledFilters = new Set();
@@ -207,7 +62,8 @@
     }
 
     function handleImgError(img) {
-        img.parentElement.innerHTML = '<div class="recipe-placeholder">🥘</div>';
+        img.style.display = 'none';
+        img.parentElement.querySelector('.recipe-placeholder').style.zIndex = "1";
     }
 
     async function init() {
@@ -248,12 +104,7 @@
 
     function createFilterButtons() {
         const grid = document.getElementById('filterGrid');
-        grid.innerHTML = CATEGORIES.map(cat => `
-            <label class="filter-item">
-                <input type="checkbox" onchange="toggleFilter('${cat}', this)">
-                ${cat}
-            </label>
-        `).join('');
+        grid.innerHTML = CATEGORIES.map(cat => `<label class="filter-item"><input type="checkbox" onchange="toggleFilter('${cat}', this)">${cat}</label>`).join('');
     }
 
     function toggleFilter(cat, checkbox) {
@@ -267,22 +118,61 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
-            const title = (r['Recept neve'] || '').toLowerCase();
-            const ingredients = (r['Hozzávalók'] || '').toLowerCase();
-            const description = (r['Leírás'] || '').toLowerCase();
-            const hashtag = (r['#Hashtag'] || '').toLowerCase();
-            
-            const matchesSearch = title.includes(search) || ingredients.includes(search) || description.includes(search) || hashtag.includes(search);
+            const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']} ${r['#Hashtag']}`.toLowerCase();
+            const matchesSearch = content.includes(search);
             if (enabledFilters.size === 0) return matchesSearch;
-            const matchesAllFilters = Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase().trim() === 'x');
-            return matchesSearch && matchesAllFilters;
+            return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase().trim() === 'x');
         });
-
-        if (filtered.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #94a3b8;">Nincs találat a szűrőkkel.</div>';
-            return;
-        }
 
         container.innerHTML = filtered.map(r => {
             const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
-            const recipeUrl =
+            const recipeUrl = (r['URL'] || '').trim();
+            const rawImg = (r['Kép'] || '').trim();
+            
+            // Tisztítás: kiszedjük az esetleges [img] tageket, ha maradtak volna
+            let cleanImg = rawImg.replace(/\[\/?img\]/g, '').trim();
+            
+            let finalImgSrc = "";
+            const ytThumb = getYoutubeThumb(recipeUrl);
+
+            // LOGIKA:
+            // 1. Ha van megadva kép az E oszlopban, azt használjuk (legyen az s-shot, imgur vagy mindmegette)
+            if (cleanImg.startsWith('http')) {
+                finalImgSrc = cleanImg;
+            } 
+            // 2. Ha nincs kép, de YouTube link, akkor a YouTube borítót
+            else if (ytThumb) {
+                finalImgSrc = ytThumb;
+            }
+            // 3. Ha semmi sincs, megpróbálunk egy unavatar képet készíteni az URL-ből (ha nem social media)
+            else if (recipeUrl && !recipeUrl.includes('facebook.com') && !recipeUrl.includes('instagram.com') && !recipeUrl.includes('tiktok.com')) {
+                finalImgSrc = `https://unavatar.io/${recipeUrl}`;
+            }
+
+            return `
+                <div class="recipe-card">
+                    <div class="recipe-img-container">
+                        ${finalImgSrc 
+                            ? `<img src="${finalImgSrc}" class="recipe-img" loading="lazy" onerror="handleImgError(this)">
+                               <div class="recipe-placeholder" style="z-index:-1">🥘</div>` 
+                            : '<div class="recipe-placeholder">🥘</div>'}
+                    </div>
+                    <div class="recipe-content">
+                        <h2 class="recipe-title">${r['Recept neve']}</h2>
+                        ${recipeUrl ? `<a href="${recipeUrl}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
+                        <div class="recipe-details">
+                            <div class="section-title">Hozzávalók:</div>
+                            <div class="recipe-text">${r['Hozzávalók'] || 'Nincs megadva'}</div>
+                            ${r['Leírás'] ? `<div class="section-title">Leírás:</div><div class="recipe-text">${r['Leírás']}</div>` : ''}
+                            <div class="recipe-tags">${tags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}</div>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', render);
+    init();
+</script>
+</body>
+</html>
