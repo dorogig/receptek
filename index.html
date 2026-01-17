@@ -265,23 +265,33 @@
 
         container.innerHTML = filtered.map(r => {
             const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
+            const recipeUrl = (r['URL'] || '').trim();
             
-            // Kép tisztítás és hierarchia
+            // KÉP MEGHATÁROZÁSA
             let rawImg = (r['Kép'] || '').trim();
             let cleanImg = rawImg.replace(/\[\/?img\]/g, '').replace(/\]/g, '').trim();
-            const ytThumb = getYoutubeThumb(r['URL']);
-            const finalImg = ytThumb || (cleanImg.startsWith('http') ? cleanImg : null);
+            
+            const ytThumb = getYoutubeThumb(recipeUrl);
+            
+            // Ha nincs YouTube és nincs saját link, megpróbáljuk a honlap index képét
+            let autoWebThumb = null;
+            if (!ytThumb && !cleanImg.startsWith('http') && recipeUrl.startsWith('http')) {
+                // Az unavatar szolgáltatás megpróbálja kinyerni az og:image-et
+                autoWebThumb = `https://unavatar.io/${recipeUrl}?fallback=false`;
+            }
+
+            const finalImg = cleanImg.startsWith('http') ? cleanImg : (ytThumb || autoWebThumb);
 
             return `
                 <div class="recipe-card">
                     <div class="recipe-img-container">
                         ${finalImg 
-                            ? `<img src="${finalImg}" class="recipe-img" onerror="this.parentElement.innerHTML='<div class=\'recipe-placeholder\'>🥘</div>'">` 
+                            ? `<img src="${finalImg}" class="recipe-img" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\'recipe-placeholder\'>🥘</div>'">` 
                             : '<div class="recipe-placeholder">🥘</div>'}
                     </div>
                     <div class="recipe-content">
                         <h2 class="recipe-title">${r['Recept neve']}</h2>
-                        ${r['URL'] ? `<a href="${r['URL']}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
+                        ${recipeUrl ? `<a href="${recipeUrl}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
                         <div class="recipe-details">
                             <div class="section-title">Hozzávalók:</div>
                             <div class="recipe-text">${r['Hozzávalók'] || 'Nincs megadva'}</div>
