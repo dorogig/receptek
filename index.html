@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gábor kedvenc receptjei</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥘</text></svg>">
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; }
@@ -52,52 +53,29 @@
     let allRecipes = [];
     let enabledFilters = new Set();
 
-    // Ez a funkció biztonságosan darabolja fel a CSV sorokat, nem zavarják a vesszők
-    function splitCSVLine(line) {
-        const result = [];
-        let cur = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) {
-                result.push(cur.trim());
-                cur = '';
-            } else cur += char;
-        }
-        result.push(cur.trim());
-        return result;
-    }
-
     async function init() {
         createFilterButtons();
-        try {
-            const response = await fetch(SHEET_URL + '&cb=' + Date.now());
-            const text = await response.text();
-            const lines = text.split('\n').filter(l => l.trim() !== "");
-            
-            const headers = splitCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
-            
-            allRecipes = lines.slice(1).map(line => {
-                const cells = splitCSVLine(line);
-                let obj = {};
-                headers.forEach((h, i) => {
-                    obj[h] = (cells[i] || "").replace(/^"|"$/g, '');
+        
+        Papa.parse(SHEET_URL, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                // Tisztítás: Csak azokat tartjuk meg, ahol van ID és Recept neve
+                allRecipes = results.data.filter(r => {
+                    const id = (r['ID'] || r['id'] || "").toString().trim();
+                    const name = (r['Recept neve'] || "").trim();
+                    return id.length > 0 && name.length > 2;
                 });
-                return obj;
-            }).filter(r => {
-                // ITT A LÉNYEG: Csak azokat tartjuk meg, ahol az ID oszlopban van valami szám
-                // és a receptnek van neve. Ez kiszűri a szétcsúszott töredékeket.
-                const idValue = r['ID'] || r['id'] || "";
-                return idValue.length > 0 && r['Recept neve'] && r['Recept neve'].length > 2;
-            });
 
-            allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
-            document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
-            render();
-        } catch (err) {
-            document.getElementById('status-bar').innerText = "Hiba a betöltéskor.";
-        }
+                allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
+                document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
+                render();
+            },
+            error: function() {
+                document.getElementById('status-bar').innerText = "Hiba a letöltéskor.";
+            }
+        });
     }
 
     function createFilterButtons() {
