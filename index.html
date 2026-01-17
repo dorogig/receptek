@@ -19,34 +19,52 @@
         .filter-item.active { background: var(--primary); color: white; border-color: var(--primary); }
         .filter-item input { display: none; }
         .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .recipe-card { background: var(--card-bg); border-radius: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; transition: transform 0.2s; }
-        .recipe-card:hover { transform: translateY(-5px); }
+        
+        .recipe-card { 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+            border: 1px solid #f1f5f9; 
+            display: flex; 
+            flex-direction: column; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
 
         .recipe-img-container { width: 100%; height: 260px; background: #000; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        
-        /* ALAPÉRTELMEZETT KÉP (Imgur, Youtube, stb.) */
-        .recipe-img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-            z-index: 2; 
-            position: relative; 
-        }
-
-        /* SPECIÁLIS NAGYÍTÁS CSAK A WORDPRESS SCREENSHOTEKHEZ */
-        .img-zoom {
-            transform: scale(2.2);
-            object-position: center center;
-        }
-
+        .recipe-img { width: 100%; height: 100%; object-fit: cover; z-index: 2; position: relative; }
+        .img-zoom { transform: scale(2.2); object-position: center center; }
         .recipe-placeholder { font-size: 3.5rem; position: absolute; z-index: 1; opacity: 0.7; }
-        .recipe-content { padding: 20px; flex-grow: 1; }
-        .recipe-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; min-height: 2.6em; line-height: 1.3; color: var(--text-main); }
-        .recipe-link { display: block; background: var(--primary); color: white; text-decoration: none; padding: 10px; border-radius: 10px; text-align: center; font-weight: 700; margin-bottom: 10px; }
-        .recipe-details { max-height: 0; opacity: 0; overflow: hidden; transition: 0.3s ease-out; }
-        .recipe-card:hover .recipe-details { max-height: 1500px; opacity: 1; margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0; }
-        .recipe-text { font-size: 0.85rem; color: var(--text-muted); white-space: pre-line; margin-bottom: 15px; }
-        .section-title { font-weight: 700; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 4px; }
+        
+        .recipe-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        .recipe-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; line-height: 1.3; color: var(--text-main); }
+        .recipe-link { display: block; background: var(--primary); color: white; text-decoration: none; padding: 12px; border-radius: 12px; text-align: center; font-weight: 700; margin-bottom: 10px; transition: 0.2s; }
+        .recipe-link:hover { background: #1d4ed8; }
+
+        /* RUGALMAS RÉSZLETEK */
+        .recipe-details { 
+            max-height: 0; 
+            opacity: 0; 
+            overflow: hidden; 
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease; 
+        }
+        .recipe-card:hover .recipe-details { 
+            max-height: 5000px; /* Megemelve, hogy a leghosszabb szöveg is kiférjen */
+            opacity: 1; 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            border-top: 1px dashed #e2e8f0; 
+        }
+        .recipe-text { 
+            font-size: 0.9rem; 
+            color: var(--text-main); 
+            white-space: pre-line; 
+            margin-bottom: 15px; 
+            line-height: 1.5;
+            text-align: justify;
+        }
+        .section-title { font-weight: 700; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; }
     </style>
 </head>
 <body>
@@ -70,22 +88,38 @@
     let allRecipes = [];
     let enabledFilters = new Set();
 
+    // CSV feldolgozó függvény, ami kezeli az idézőjelek közötti vesszőket és sortöréseket
+    function parseCSV(text) {
+        const result = [];
+        let row = [];
+        let col = "";
+        let inQuotes = false;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i+1];
+            if (char === '"' && inQuotes && nextChar === '"') { col += '"'; i++; }
+            else if (char === '"') { inQuotes = !inQuotes; }
+            else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ""; }
+            else if (char === '\n' && !inQuotes) { row.push(col.trim()); result.push(row); row = []; col = ""; }
+            else { col += char; }
+        }
+        if (col || row.length) { row.push(col.trim()); result.push(row); }
+        return result;
+    }
+
     async function init() {
         createFilterButtons();
         try {
             const response = await fetch(SHEET_URL + '&cb=' + Date.now());
             const text = await response.text();
-            const rows = text.split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim()));
-            const headers = rows[0];
+            const data = parseCSV(text);
+            const headers = data[0];
             
-            allRecipes = rows.slice(1).map(row => {
+            allRecipes = data.slice(1).map(row => {
                 let obj = {};
                 headers.forEach((h, i) => obj[h] = row[i]);
                 return obj;
-            }).filter(r => {
-                const idNum = parseInt(r['ID']);
-                return r['Recept neve'] && r['Recept neve'].length > 1 && !isNaN(idNum);
-            });
+            }).filter(r => r['Recept neve'] && r['Recept neve'].length > 1);
 
             allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
             document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
@@ -111,7 +145,7 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
-            const content = `${r['Recept neve']} ${r['Hozzávalók']}`.toLowerCase();
+            const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']}`.toLowerCase();
             const matchesSearch = content.includes(search);
             if (enabledFilters.size === 0) return matchesSearch;
             return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase() === 'x');
@@ -120,16 +154,15 @@
         container.innerHTML = filtered.map(r => {
             const url = (r['URL'] || '').trim();
             const img = (r['Kép'] || '').trim();
+            const ingredients = (r['Hozzávalók'] || '').trim();
+            const description = (r['Leírás'] || '').trim();
             
             let imgSrc = "";
             let useZoom = false;
 
             if (img && img.startsWith('http')) {
                 imgSrc = img;
-                // Ha wordpress screenshot, bekapcsoljuk a zoomot
-                if (img.includes('wordpress.com')) {
-                    useZoom = true;
-                }
+                if (img.includes('wordpress.com')) useZoom = true;
             } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
                 const vid = url.match(/(?:v=|be\/|embed\/)([\w-]{11})/);
                 if (vid) imgSrc = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
@@ -145,9 +178,8 @@
                         <h2 class="recipe-title">${r['Recept neve']}</h2>
                         ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
                         <div class="recipe-details">
-                            <div class="section-title">Hozzávalók:</div>
-                            <div class="recipe-text">${r['Hozzávalók']}</div>
-                            ${r['Leírás'] ? `<div class="section-title">Leírás:</div><div class="recipe-text">${r['Leírás']}</div>` : ''}
+                            ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
+                            ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
                         </div>
                     </div>
                 </div>`;
