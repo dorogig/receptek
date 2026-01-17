@@ -287,64 +287,22 @@
             const tags = CATEGORIES.filter(cat => (r[cat] || '').toLowerCase().trim() === 'x');
             const recipeUrl = (r['URL'] || '').trim();
             
-            // KÉP LOGIKA FRISSÍTÉSE
-            let rawImg = (r['Kép'] || '').trim();
-            let screenshotImg = (r['E'] || '').trim(); // Ez az oszlop az E oszlop screenshotja
-            let cleanImg = rawImg.replace(/\[\/?img\]/g, '').replace(/\]/g, '').trim();
-            
-            const ytThumb = getYoutubeThumb(recipeUrl);
+            // KÉP LOGIKA - CSAK A "Kép" OSZLOPOT NÉZZÜK
+            let imgValue = (r['Kép'] || '').trim();
+            let cleanImg = imgValue.replace(/\[\/?img\]/g, '').replace(/\]/g, '').trim();
             
             let finalImgSrc = "";
-            // 1. Megnézzük a manuális Kép oszlopot
+
+            // 1. Ha van bármi a "Kép" oszlopban ami link
             if (cleanImg.startsWith('http')) {
                 finalImgSrc = cleanImg;
             } 
-            // 2. Ha az üres, megnézzük az E oszlop screenshot-linkjét
-            else if (screenshotImg.startsWith('http')) {
-                finalImgSrc = screenshotImg;
-            }
-            // 3. Ha az is üres, jön a YouTube
-            else if (ytThumb) {
-                finalImgSrc = ytThumb;
-            } 
-            // 4. Utolsó próbálkozás favicon alapú unavatarral
-            else if (recipeUrl.startsWith('http')) {
-                const isSocial = recipeUrl.includes('facebook.com') || recipeUrl.includes('instagram.com') || recipeUrl.includes('tiktok.com');
-                if (!isSocial) finalImgSrc = `https://unavatar.io/${recipeUrl}`;
-            }
-
-            return `
-                <div class="recipe-card">
-                    <div class="recipe-img-container">
-                        ${finalImgSrc 
-                            ? `<img src="${finalImgSrc}" 
-                                    class="recipe-img" 
-                                    loading="lazy" 
-                                    onload="this.style.opacity=1"
-                                    style="opacity:0; transition: opacity 0.3s;"
-                                    onerror="handleImgError(this)">
-                               <div class="recipe-placeholder" style="z-index:-1">🥘</div>` 
-                            : '<div class="recipe-placeholder">🥘</div>'}
-                    </div>
-                    <div class="recipe-content">
-                        <h2 class="recipe-title">${r['Recept neve']}</h2>
-                        ${recipeUrl ? `<a href="${recipeUrl}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
-                        <div class="recipe-details">
-                            <div class="section-title">Hozzávalók:</div>
-                            <div class="recipe-text">${r['Hozzávalók'] || 'Nincs megadva'}</div>
-                            ${r['Leírás'] ? `<div class="section-title">Leírás:</div><div class="recipe-text">${r['Leírás']}</div>` : ''}
-                            <div class="recipe-tags">
-                                ${tags.map(t => `<span class="recipe-tag">${t}</span>`).join('')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    document.getElementById('searchInput').addEventListener('input', render);
-    init();
-</script>
-</body>
-</html>
+            // 2. Ha üres, megnézzük a YouTube-ot
+            else {
+                const ytThumb = getYoutubeThumb(recipeUrl);
+                if (ytThumb) {
+                    finalImgSrc = ytThumb;
+                } 
+                // 3. Ha az sincs, jöhet a favicon (unavatar)
+                else if (recipeUrl.startsWith('http')) {
+                    const isSocial = recipeUrl.includes('facebook.com') || recipeUrl.includes('instagram.com') || recipeUrl.includes('tiktok
