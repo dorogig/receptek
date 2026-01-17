@@ -52,34 +52,51 @@
     let allRecipes = [];
     let enabledFilters = new Set();
 
+    // Ez a funkció biztonságosan darabolja fel a CSV sorokat, nem zavarják a vesszők
+    function splitCSVLine(line) {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === ',' && !inQuotes) {
+                result.push(cur.trim());
+                cur = '';
+            } else cur += char;
+        }
+        result.push(cur.trim());
+        return result;
+    }
+
     async function init() {
         createFilterButtons();
         try {
-            // A cache-elés elkerülése érdekében hozzáadunk egy időbélyeget
-            const response = await fetch(SHEET_URL + '&timestamp=' + new Date().getTime());
+            const response = await fetch(SHEET_URL + '&cb=' + Date.now());
             const text = await response.text();
+            const lines = text.split('\n').filter(l => l.trim() !== "");
             
-            // Nagyon egyszerű darabolás a legstabilabb működésért
-            const rows = text.split('\n').filter(r => r.trim() !== "");
-            const headers = rows[0].split(',').map(h => h.replace(/"/g, '').trim());
+            const headers = splitCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
             
-            allRecipes = rows.slice(1).map(row => {
-                // Ez a regex segít kezelni a vesszőket az idézőjelek között
-                const cells = row.match(/(".*?"|[^",\r\n]+)(?=\s*,|\s*$)/g) || [];
+            allRecipes = lines.slice(1).map(line => {
+                const cells = splitCSVLine(line);
                 let obj = {};
                 headers.forEach((h, i) => {
-                    let val = cells[i] || "";
-                    obj[h] = val.replace(/^"|"$/g, '').trim();
+                    obj[h] = (cells[i] || "").replace(/^"|"$/g, '');
                 });
                 return obj;
-            }).filter(r => r['Recept neve'] && r['Recept neve'].length > 2);
+            }).filter(r => {
+                // ITT A LÉNYEG: Csak azokat tartjuk meg, ahol az ID oszlopban van valami szám
+                // és a receptnek van neve. Ez kiszűri a szétcsúszott töredékeket.
+                const idValue = r['ID'] || r['id'] || "";
+                return idValue.length > 0 && r['Recept neve'] && r['Recept neve'].length > 2;
+            });
 
             allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
-            document.getElementById('status-bar').innerText = `${allRecipes.length} recept elérhető`;
+            document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
             render();
         } catch (err) {
-            document.getElementById('status-bar').innerText = "Hiba történt az adatok letöltésekor.";
-            console.error(err);
+            document.getElementById('status-bar').innerText = "Hiba a betöltéskor.";
         }
     }
 
@@ -109,7 +126,6 @@
             const url = (r['URL'] || '').trim();
             const img = (r['Kép'] || '').trim();
             
-            // Kép meghatározása: ha van link a Kép oszlopban, azt használjuk
             let imgSrc = "";
             if (img.startsWith('http')) {
                 imgSrc = img;
@@ -126,7 +142,7 @@
                     </div>
                     <div class="recipe-content">
                         <h2 class="recipe-title">${r['Recept neve']}</h2>
-                        ${url ? `<a href="${url}" target="_blank" class="recipe-link">Recept megnyitása</a>` : ''}
+                        ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
                         <div class="recipe-details">
                             <div class="section-title">Hozzávalók:</div>
                             <div class="recipe-text">${r['Hozzávalók']}</div>
