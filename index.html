@@ -41,9 +41,7 @@
       transition: max-height 0.4s ease;
     }
 
-    .filter-panel.open {
-      max-height: 1000px;
-    }
+    .filter-panel.open { max-height: 1000px; }
 
     @media (max-width: 600px) {
       .filter-panel.open {
@@ -69,7 +67,6 @@
       gap: 6px;
     }
 
-    /* 5 egyenlő szélességű oszlop */
     .filter-grid-5 {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -228,6 +225,24 @@
     }
 
     .active-filter-chip span { margin-left: 4px; font-weight: 700; }
+
+    /* Kedvenc csillag a cím mellett */
+    .fav-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 1.3rem;
+      line-height: 1;
+      opacity: 0.4;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .fav-btn:hover {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+    .fav-btn.fav-active {
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -316,6 +331,7 @@
 
   let allRecipes = [];
   let enabledFilters = new Set();
+  let favoriteIds = new Set();
 
   function parseCSV(text) {
     const result = [];
@@ -420,6 +436,16 @@
   function toggleFilter(cat, checkbox) {
     checkbox.checked ? enabledFilters.add(cat) : enabledFilters.delete(cat);
     checkbox.parentElement.classList.toggle('active', checkbox.checked);
+    render();
+  }
+
+  function toggleFavorite(id) {
+    if (!id) return;
+    if (favoriteIds.has(id)) {
+      favoriteIds.delete(id);
+    } else {
+      favoriteIds.add(id);
+    }
     render();
   }
 
@@ -547,6 +573,8 @@
         cat => (r[cat] || '').toLowerCase() === 'x'
       );
 
+      const isFav = r['ID'] && favoriteIds.has(r['ID'].toString());
+
       return `
         <div class="recipe-card">
           <div class="recipe-img-container">
@@ -554,7 +582,15 @@
             ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
           </div>
           <div class="recipe-content">
-            <h2 class="recipe-title">${r['Recept neve']}</h2>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <h2 class="recipe-title" style="margin-bottom:0;">${r['Recept neve']}</h2>
+              ${r['ID'] ? `
+                <button class="fav-btn ${isFav ? 'fav-active' : ''}"
+                        onclick="toggleFavorite('${r['ID'].toString()}')"
+                        title="Kedvenc jelölése / levétele">
+                  ⭐
+                </button>` : ''}
+            </div>
             ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
 
             <div class="recipe-details">
