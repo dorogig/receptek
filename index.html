@@ -65,6 +65,61 @@
                       flex-wrap: wrap;
                       gap: 8px;
                     }
+                    
+                            /* 5 egyenlő szélességű oszlop */
+                    .filter-grid-5 {
+                      display: grid;
+                      grid-template-columns: repeat(5, minmax(0, 1fr));
+                      gap: 12px 20px;
+                      margin-top: 10px;
+                    }
+                    
+                    /* kisebb kijelzőn kevesebb oszlopra törés */
+                    @media (max-width: 900px) {
+                      .filter-grid-5 {
+                        grid-template-columns: repeat(2, minmax(0, 1fr));
+                      }
+                    }
+                    
+                    @media (max-width: 600px) {
+                      .filter-grid-5 {
+                        grid-template-columns: 1fr;
+                      }
+                    }
+                    
+                    /* filter-actions (Összes törlése) */
+                    .filter-actions {
+                      display: flex;
+                      justify-content: flex-end;
+                      margin-bottom: 8px;
+                    }
+                    
+                    .clear-filters-btn {
+                      padding: 6px 10px;
+                      font-size: 0.8rem;
+                      border-radius: 999px;
+                      border: 1px solid #e2e8f0;
+                      background: #f1f5f9;
+                      color: var(--text-muted);
+                      cursor: pointer;
+                    }
+                    
+                    .clear-filters-btn:hover {
+                      background: #e2e8f0;
+                    }
+                    
+                    /* filter-panel alapból desktopon nyitva, mobilon csukva ajánlott:
+                       JS-ből fogjuk állítani a .open osztályt, ezt hagyhatod, ahogy most van */
+                    .filter-panel {
+                      max-height: 0;
+                      overflow: hidden;
+                      transition: max-height 0.4s ease;
+                    }
+                    
+                    .filter-panel.open {
+                      max-height: 1000px;
+                    }
+
         .search-box { width: 100%; padding: 16px 24px; border: 2px solid #e2e8f0; border-radius: 14px; margin-bottom: 20px; font-size: 1.1rem; outline: none; }
         .filter-item { background: #f1f5f9; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: 1px solid #e2e8f0; color: var(--text-muted); transition: 0.2s; }
         .filter-item.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -148,33 +203,40 @@
         Szűrők megjelenítése
       </button>
       <div id="filterPanel" class="filter-panel">
-        <input type="text" id="searchInput" class="search-box" placeholder="Keresés névben, hozzávalókban, hashtagekben...">
+          <input type="text" id="searchInput" class="search-box" placeholder="Keresés névben, hozzávalókban, hashtagekben...">
         
-        <div class="filter-section">
-          <div class="filter-section-title">Elkészítés módja:</div>
-          <div class="filter-grid" id="filterPrep"></div>
-        </div>
-    
-        <div class="filter-section">
-          <div class="filter-section-title">Konyha / Ízvilág:</div>
-          <div class="filter-grid" id="filterCuisine"></div>
-        </div>
-    
-        <div class="filter-section">
-          <div class="filter-section-title">Fogástípusok:</div>
-          <div class="filter-grid" id="filterCourse"></div>
-        </div>
-    
-        <div class="filter-section">
-          <div class="filter-section-title">Fő összetevők:</div>
-          <div class="filter-grid" id="filterMain"></div>
-        </div>
-    
-        <div class="filter-section">
-          <div class="filter-section-title">Egyéb:</div>
-          <div class="filter-grid" id="filterOther"></div>
-        </div>
-      </div>
+          <div class="filter-actions">
+            <button id="clearFilters" class="clear-filters-btn">Összes törlése</button>
+          </div>
+        
+          <div class="filter-grid-5">
+            <div class="filter-section">
+              <div class="filter-section-title">Elkészítés módja:</div>
+              <div class="filter-grid" id="filterPrep"></div>
+            </div>
+        
+            <div class="filter-section">
+              <div class="filter-section-title">Konyha / Ízvilág:</div>
+              <div class="filter-grid" id="filterCuisine"></div>
+            </div>
+        
+            <div class="filter-section">
+              <div class="filter-section-title">Fogástípusok:</div>
+              <div class="filter-grid" id="filterCourse"></div>
+            </div>
+        
+            <div class="filter-section">
+              <div class="filter-section-title">Fő összetevők:</div>
+              <div class="filter-grid" id="filterMain"></div>
+            </div>
+        
+            <div class="filter-section">
+              <div class="filter-section-title">Egyéb:</div>
+              <div class="filter-grid" id="filterOther"></div>
+            </div>
+          </div>
+</div>
+
     </div>
 
     <div id="recipesContainer" class="recipes"></div>
@@ -407,13 +469,44 @@ document.getElementById('searchInput').addEventListener('input', render);
 
 const filterToggleBtn = document.getElementById('filterToggle');
 const filterPanel = document.getElementById('filterPanel');
+const clearFiltersBtn = document.getElementById('clearFilters');
 
 filterToggleBtn.addEventListener('click', () => {
   const isOpen = filterPanel.classList.toggle('open');
   filterToggleBtn.textContent = isOpen ? 'Szűrők elrejtése' : 'Szűrők megjelenítése';
 });
 
+// Összes törlése: keresőmező + összes checkbox törlése + enabledFilters ürítése
+clearFiltersBtn.addEventListener('click', () => {
+  document.getElementById('searchInput').value = '';
+
+  // összes checkbox kikapcsolása
+  document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+    cb.parentElement.classList.remove('active');
+  });
+
+  enabledFilters.clear();
+  render();
+});
+
+// Mobil: induláskor automatikus állapot
+function setupInitialFilterPanelState() {
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    filterPanel.classList.remove('open');
+    filterToggleBtn.textContent = 'Szűrők megjelenítése';
+  } else {
+    filterPanel.classList.add('open');
+    filterToggleBtn.textContent = 'Szűrők elrejtése';
+  }
+}
+
+window.addEventListener('resize', setupInitialFilterPanelState);
+
 init();
+setupInitialFilterPanelState();
+
 </script>
 </body>
 </html>
