@@ -145,9 +145,13 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
-            const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']}`.toLowerCase();
+            // JAVÍTÁS: Itt hozzáadjuk a Hashtagek (r['Hashtagek']) oszlopot is a kereséshez
+            const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']} ${r['Hashtagek'] || ''}`.toLowerCase();
             const matchesSearch = content.includes(search);
+            
             if (enabledFilters.size === 0) return matchesSearch;
+            
+            // A kategória pipák keresése marad változatlan
             return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase() === 'x');
         });
 
@@ -156,6 +160,7 @@
             const img = (r['Kép'] || '').trim();
             const ingredients = (r['Hozzávalók'] || '').trim();
             const description = (r['Leírás'] || '').trim();
+            const hashtags = (r['Hashtagek'] || '').trim(); // ÚJ: Hashtagek kinyerése
             
             let imgSrc = "";
             let useZoom = false;
@@ -178,7 +183,7 @@
                         <h2 class="recipe-title">${r['Recept neve']}</h2>
                         ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
                         <div class="recipe-details">
-                            ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
+                            ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''} ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
                             ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
                         </div>
                     </div>
