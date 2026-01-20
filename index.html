@@ -145,15 +145,20 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         
         const filtered = allRecipes.filter(r => {
-            // JAVÍTÁS: Itt hozzáadjuk a Hashtagek (r['Hashtagek']) oszlopot is a kereséshez
-            const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']} ${r['Hashtagek'] || ''}`.toLowerCase();
-            const matchesSearch = content.includes(search);
-            
-            if (enabledFilters.size === 0) return matchesSearch;
-            
-            // A kategória pipák keresése marad változatlan
-            return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase() === 'x');
-        });
+  // címkék összegyűjtése: minden olyan oszlopnév, ami CATEGORIES-ben szerepel és 'x'
+  const activeTags = CATEGORIES
+    .filter(cat => (r[cat] || '').toLowerCase() === 'x')
+    .join(' ');
+
+  // keresés: név + hozzávalók + leírás + hashtagek + címkék
+  const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']} ${r['Hashtagek'] || ''} ${activeTags}`.toLowerCase();
+  const matchesSearch = content.includes(search);
+
+  if (enabledFilters.size === 0) return matchesSearch;
+
+  // a kategória pipák szűrése marad
+  return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase() === 'x');
+});
 
         container.innerHTML = filtered.map(r => {
             const url = (r['URL'] || '').trim();
@@ -174,20 +179,31 @@
             }
 
             return `
-                <div class="recipe-card">
-                    <div class="recipe-img-container">
+                    <div class="recipe-card">
+                      <div class="recipe-img-container">
                         <div class="recipe-placeholder">🥘</div>
                         ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                    </div>
-                    <div class="recipe-content">
+                      </div>
+                      <div class="recipe-content">
                         <h2 class="recipe-title">${r['Recept neve']}</h2>
                         ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
                         <div class="recipe-details">
-                            ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''} ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
-                            ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
+                          ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
+                          ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
+                          ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
+                    
+                          <!-- ÚJ: címkék kiírása a kártya alján -->
+                          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">
+                            ${
+                              CATEGORIES
+                                .filter(cat => (r[cat] || '').toLowerCase() === 'x')
+                                .join(' • ')
+                            }
+                          </div>
                         </div>
-                    </div>
-                </div>`;
+                      </div>
+                    </div>`;
+
         }).join('');
     }
 
