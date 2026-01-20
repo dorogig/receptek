@@ -43,9 +43,19 @@
                       transition: max-height 0.4s ease;
                     }
                     
+                    /* Desktop: elég a 1000px */
                     .filter-panel.open {
-                      max-height: 1000px; /* elég nagy, hogy kiférjen minden */
+                      max-height: 1000px;
                     }
+                    
+                    /* Mobil: használjunk nagyobb max-height-et, belső scrollal */
+                    @media (max-width: 600px) {
+                      .filter-panel.open {
+                        max-height: 80vh;        /* a képernyő 80%-a */
+                        overflow-y: auto;        /* belső görgetés, ha nem fér ki */
+                      }
+                    }
+
                     
                     .filter-section {
                       margin-top: 12px;
