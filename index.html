@@ -42,7 +42,9 @@
                       overflow: hidden;
                       transition: max-height 0.4s ease;
                     }
-                    
+
+                    <div id="activeFiltersBar" class="active-filters-bar"></div>
+        
                     /* Desktop: elég a 1000px */
                     .filter-panel.open {
                       max-height: 1000px;
@@ -130,7 +132,57 @@
                     .filter-panel.open {
                       max-height: 1000px;
                     }
+        
+                    .fav-btn {
+                      border: none;
+                      background: transparent;
+                      cursor: pointer;
+                      font-size: 1.3rem;
+                      line-height: 1;
+                      opacity: 0.4;
+                      transition: opacity 0.2s, transform 0.1s;
+                    }
+                    
+                    .fav-btn:hover {
+                      opacity: 0.8;
+                      transform: scale(1.05);
+                    }
+                    
+                    .fav-btn.fav-active {
+                      opacity: 1;
+                    }
 
+                    .active-filters-bar {
+                      margin-top: 10px;
+                      font-size: 0.8rem;
+                      color: var(--text-muted);
+                      display: flex;
+                      flex-wrap: wrap;
+                      gap: 6px;
+                    }
+                    
+                    .active-filter-label {
+                      font-weight: 600;
+                      margin-right: 4px;
+                    }
+                    
+                    .active-filter-chip {
+                      display: inline-flex;
+                      align-items: center;
+                      padding: 3px 8px;
+                      border-radius: 999px;
+                      background: #e2e8f0;
+                      color: var(--text-main);
+                      font-size: 0.75rem;
+                      cursor: pointer;
+                    }
+                    
+                    .active-filter-chip span {
+                      margin-left: 4px;
+                      font-weight: 700;
+                    }
+
+        
         .search-box { width: 100%; padding: 16px 24px; border: 2px solid #e2e8f0; border-radius: 14px; margin-bottom: 20px; font-size: 1.1rem; outline: none; }
         .filter-item { background: #f1f5f9; padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: 1px solid #e2e8f0; color: var(--text-muted); transition: 0.2s; }
         .filter-item.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -285,6 +337,7 @@
 
     let allRecipes = [];
     let enabledFilters = new Set();
+    let favoriteIds = new Set();
 
     // CSV feldolgozó függvény, ami kezeli az idézőjelek közötti vesszőket és sortöréseket
     function parseCSV(text) {
@@ -314,10 +367,17 @@
             const headers = data[0];
             
             allRecipes = data.slice(1).map(row => {
-                let obj = {};
-                headers.forEach((h, i) => obj[h] = row[i]);
-                return obj;
+              let obj = {};
+              headers.forEach((h, i) => obj[h] = row[i]);
+            
+              // ha a Kedvenc oszlop 'x', ID-t eltároljuk
+              if ((obj[FAVORITE_COL] || '').toLowerCase() === 'x' && obj['ID']) {
+                favoriteIds.add(obj['ID'].toString());
+              }
+            
+              return obj;
             }).filter(r => r['Recept neve'] && r['Recept neve'].length > 1);
+
 
             allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
             document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
@@ -388,12 +448,46 @@
                   makeButtons(groupOther, 'filterOther');
                 }
 
+function clearSearchFilter() {
+  const input = document.getElementById('searchInput');
+  if (!input) return;
+  input.value = '';
+  render();
+}
+
+function removeFilter(cat) {
+  // megkeressük a checkboxot, kikapcsoljuk, és a toggleFilter-rel rendesen lekezeljük
+  const checkboxes = document.querySelectorAll('.filter-panel input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    const label = cb.parentElement;
+    if (label && label.textContent.trim() === cat) {
+      if (cb.checked) {
+        cb.checked = false;
+        label.classList.remove('active');
+        enabledFilters.delete(cat);
+      }
+    }
+  });
+  render();
+}
+
+    
     function toggleFilter(cat, checkbox) {
         checkbox.checked ? enabledFilters.add(cat) : enabledFilters.delete(cat);
         checkbox.parentElement.classList.toggle('active', checkbox.checked);
         render();
     }
-
+    
+    function toggleFavorite(id) {
+      if (!id) return;
+      if (favoriteIds.has(id)) {
+        favoriteIds.delete(id);
+      } else {
+        favoriteIds.add(id);
+      }
+      render();
+    }
+    
     function render() {
   const container = document.getElementById('recipesContainer');
   const search = document.getElementById('searchInput').value.toLowerCase().trim();
@@ -410,6 +504,7 @@
       ${r['Hozzávalók'] || ''}
       ${r['Leírás'] || ''}
       ${r['Hashtagek'] || ''}
+      ${r['Kedvencek'] || ''}
       ${activeTags}
     `.toLowerCase();
 
@@ -426,7 +521,62 @@
     );
   });
 
+   // Status bar frissítése: összes recept + szűrt találatok
+    const statusBar = document.getElementById('status-bar');
+    if (statusBar) {
+      const total = allRecipes.length;
+      const visible = filtered.length;
+      if (visible === total) {
+        statusBar.innerText = `${total} recept betöltve`;
+      } else {
+        statusBar.innerText = `${total} recept betöltve • ${visible} találat a szűrésre`;
+      }
+    }
+
+        // Aktív szűrők sáv frissítése
+const activeBar = document.getElementById('activeFiltersBar');
+if (activeBar) {
+  const parts = [];
+
+  const searchValue = document.getElementById('searchInput').value.trim();
+  if (searchValue) {
+    parts.push(`<div class="active-filter-chip" onclick="clearSearchFilter()">
+                  Keresés: "${searchValue}" <span>×</span>
+                </div>`);
+  }
+
+  if (enabledFilters.size > 0) {
+    parts.push(`<span class="active-filter-label">Aktív címkék:</span>`);
+    enabledFilters.forEach(cat => {
+      parts.push(`<div class="active-filter-chip" onclick="removeFilter('${cat}')">
+                    ${cat} <span>×</span>
+                  </div>`);
+    });
+  }
+
+  if (!searchValue && enabledFilters.size === 0) {
+    activeBar.innerHTML = '';
+  } else {
+    activeBar.innerHTML = parts.join('');
+  }
+}
+
+        
+  if (filtered.length === 0) {
+  container.innerHTML = `
+    <div style="grid-column: 1 / -1; text-align:center; padding:40px 20px; color: var(--text-muted);">
+      Nincs ilyen recept a jelenlegi keresésre és szűrőkre.
+      <br>
+      Próbálj kevesebb szűrőt vagy másik kulcsszót.
+    </div>
+  `;
+  return;
+}      
   container.innerHTML = filtered.map(r => {
+      // Kedvenc mező frissítése a memóriabeli állapot alapján
+        if (r['ID']) {
+          r[FAVORITE_COL] = favoriteIds.has(r['ID'].toString()) ? 'x' : '';
+        }
     const url = (r['URL'] || '').trim();
     const img = (r['Kép'] || '').trim();
     const ingredients = (r['Hozzávalók'] || '').trim();
@@ -450,28 +600,36 @@
     );
 
     return `
-<div class="recipe-card">
-  <div class="recipe-img-container">
-    <div class="recipe-placeholder">🥘</div>
-    ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
-  </div>
-  <div class="recipe-content">
-    <h2 class="recipe-title">${r['Recept neve']}</h2>
-    ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
-    <div class="recipe-details">
-      ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
-      ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
-      ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
-      ${
-        activeTags.length
-          ? `<div class="recipe-tags">
-               ${activeTags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
-             </div>`
-          : ''
-      }
-    </div>
-  </div>
-</div>`;
+    <div class="recipe-card">
+      <div class="recipe-img-container">
+        <div class="recipe-placeholder">🥘</div>
+        ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
+      </div>
+      <div class="recipe-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <h2 class="recipe-title" style="margin-bottom:0;">${r['Recept neve']}</h2>
+          <button class="fav-btn ${ (r[FAVORITE_COL] || '').toLowerCase() === 'x' ? 'fav-active' : '' }"
+              onclick="toggleFavorite('${(r['ID'] || '').trim()}')"
+              title="Kedvenc jelölése / levétele">
+    ⭐
+  </button>
+</div>
+${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
+
+        <div class="recipe-details">
+          ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
+          ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
+          ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
+          ${
+            activeTags.length
+              ? `<div class="recipe-tags">
+                   ${activeTags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+                 </div>`
+              : ''
+          }
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
