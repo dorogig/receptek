@@ -62,9 +62,10 @@
                     
                     .filter-grid {
                       display: flex;
-                      flex-wrap: wrap;
-                      gap: 8px;
+                      flex-direction: column;
+                      gap: 6px;
                     }
+
                     
                             /* 5 egyenlő szélességű oszlop */
                     .filter-grid-5 {
@@ -492,20 +493,13 @@ clearFiltersBtn.addEventListener('click', () => {
 
 // Mobil: induláskor automatikus állapot
 function setupInitialFilterPanelState() {
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile) {
-    filterPanel.classList.remove('open');
-    filterToggleBtn.textContent = 'Szűrők megjelenítése';
-  } else {
-    filterPanel.classList.add('open');
-    filterToggleBtn.textContent = 'Szűrők elrejtése';
-  }
+  filterPanel.classList.remove('open');
+  filterToggleBtn.textContent = 'Szűrők megjelenítése';
 }
-
-window.addEventListener('resize', setupInitialFilterPanelState);
 
 init();
 setupInitialFilterPanelState();
+
 
 </script>
 </body>
