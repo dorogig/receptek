@@ -226,22 +226,43 @@
 
     .active-filter-chip span { margin-left: 4px; font-weight: 700; }
 
-    /* Kedvenc csillag a cím mellett */
+    /* Kedvenc gomb a kép jobb felső sarkában */
     .fav-btn {
-      border: none;
-      background: transparent;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 999px;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      font-size: 1.3rem;
-      line-height: 1;
-      opacity: 0.4;
-      transition: opacity 0.2s, transform 0.1s;
+      padding: 0;
+      transition: transform 0.1s, background 0.2s, border-color 0.2s;
     }
+
+    .fav-icon {
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0);
+      -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.9);
+    }
+
     .fav-btn:hover {
-      opacity: 0.8;
       transform: scale(1.05);
+      background: rgba(0, 0, 0, 0.5);
     }
+
     .fav-btn.fav-active {
-      opacity: 1;
+      border-color: rgba(251, 191, 36, 0.9);
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .fav-btn.fav-active .fav-icon {
+      color: #fbbf24;
+      -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.8);
     }
   </style>
 </head>
@@ -580,17 +601,15 @@
           <div class="recipe-img-container">
             <div class="recipe-placeholder">🥘</div>
             ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
+            ${r['ID'] ? `
+              <button class="fav-btn ${isFav ? 'fav-active' : ''}"
+                      onclick="toggleFavorite('${r['ID'].toString()}')"
+                      title="Kedvenc jelölése / levétele">
+                <span class="fav-icon">★</span>
+              </button>` : ''}
           </div>
           <div class="recipe-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <h2 class="recipe-title" style="margin-bottom:0;">${r['Recept neve']}</h2>
-              ${r['ID'] ? `
-                <button class="fav-btn ${isFav ? 'fav-active' : ''}"
-                        onclick="toggleFavorite('${r['ID'].toString()}')"
-                        title="Kedvenc jelölése / levétele">
-                  ⭐
-                </button>` : ''}
-            </div>
+            <h2 class="recipe-title">${r['Recept neve']}</h2>
             ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
 
             <div class="recipe-details">
