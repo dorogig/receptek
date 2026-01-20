@@ -101,7 +101,33 @@
 
 <script>
     const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSA0efaKVbz-LL31DrKXrxbMo-4hKTb36ZzpjYXY7laLH5AmJGKiQp2FqvtQh8mj3TV6Mo995225hYr/pub?gid=617184698&single=true&output=csv';
-    const CATEGORIES = ['Sütés', 'Főzés', 'Sütés és főzés nélkül', 'Air Fryer', 'Magyaros', 'Ázsiai', 'Mediterrán', 'Köret', 'Saláta', 'Főétel', 'Reggeli/Vacsora', 'Leves', 'Édes desszert', 'Sós desszert', 'Ital', 'Egyéb', 'Tippek és trükkök', 'Vegetáriánus', 'Csirke', 'Halak és rákok', 'Marha/Sertés', 'Diétás', 'Gyors', 'Egyszerű'];
+    const CATEGORIES = [
+  'Sütőben sült / Tepsis',
+  'Serpenyős / WOK',
+  'Főzés',
+  'Sütés és főzés nélkül',
+  'Air Fryer',
+  'Magyaros',
+  'Ázsiai',
+  'Mediterrán',
+  'Köret',
+  'Saláta',
+  'Főétel',
+  'Reggeli / Vacsora',
+  'Leves',
+  'Édes desszert',
+  'Sós desszert',
+  'Ital',
+  'Egyéb',
+  'Tippek és trükkök',
+  'Vegetáriánus',
+  'Csirke',
+  'Halak és rákok',
+  'Marha / Sertés',
+  'Diétás',
+  'Gyors',
+  'Egyszerű'
+];
 
     let allRecipes = [];
     let enabledFilters = new Set();
