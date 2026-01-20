@@ -141,71 +141,86 @@
     }
 
     function render() {
-        const container = document.getElementById('recipesContainer');
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        
-        const filtered = allRecipes.filter(r => {
-  // címkék összegyűjtése: minden olyan oszlopnév, ami CATEGORIES-ben szerepel és 'x'
-  const activeTags = CATEGORIES
-    .filter(cat => (r[cat] || '').toLowerCase() === 'x')
-    .join(' ');
+  const container = document.getElementById('recipesContainer');
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
 
-  // keresés: név + hozzávalók + leírás + hashtagek + címkék
-  const content = `${r['Recept neve']} ${r['Hozzávalók']} ${r['Leírás']} ${r['Hashtagek'] || ''} ${activeTags}`.toLowerCase();
-  const matchesSearch = content.includes(search);
+  const filtered = allRecipes.filter(r => {
+    // aktív címkék összegyűjtése
+    const activeTags = CATEGORIES
+      .filter(cat => (r[cat] || '').toLowerCase() === 'x')
+      .join(' ');
 
-  if (enabledFilters.size === 0) return matchesSearch;
+    // kereshető tartalom: név + hozzávalók + leírás + hashtagek + címkék
+    const content = `
+      ${r['Recept neve'] || ''}
+      ${r['Hozzávalók'] || ''}
+      ${r['Leírás'] || ''}
+      ${r['Hashtagek'] || ''}
+      ${activeTags}
+    `.toLowerCase();
 
-  // a kategória pipák szűrése marad
-  return matchesSearch && Array.from(enabledFilters).every(cat => (r[cat] || '').toLowerCase() === 'x');
-});
+    const matchesSearch = search === '' ? true : content.includes(search);
 
-        container.innerHTML = filtered.map(r => {
-            const url = (r['URL'] || '').trim();
-            const img = (r['Kép'] || '').trim();
-            const ingredients = (r['Hozzávalók'] || '').trim();
-            const description = (r['Leírás'] || '').trim();
-            const hashtags = (r['Hashtagek'] || '').trim(); // ÚJ: Hashtagek kinyerése
-            
-            let imgSrc = "";
-            let useZoom = false;
+    if (!matchesSearch) return false;
 
-            if (img && img.startsWith('http')) {
-                imgSrc = img;
-                if (img.includes('wordpress.com')) useZoom = true;
-            } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                const vid = url.match(/(?:v=|be\/|embed\/)([\w-]{11})/);
-                if (vid) imgSrc = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
-            }
+    // ha nincs bekapcsolt filter gomb, akkor elég a keresés
+    if (enabledFilters.size === 0) return true;
 
-            return `
-                    <div class="recipe-card">
-                      <div class="recipe-img-container">
-                        <div class="recipe-placeholder">🥘</div>
-                        ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
-                      </div>
-                      <div class="recipe-content">
-                        <h2 class="recipe-title">${r['Recept neve']}</h2>
-                        ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
-                        <div class="recipe-details">
-                          ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
-                          ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
-                          ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
-                    
-                          <!-- ÚJ: címkék kiírása a kártya alján -->
-                          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">
-                            ${
-                              CATEGORIES
-                                .filter(cat => (r[cat] || '').toLowerCase() === 'x')
-                                .join(' • ')
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>`;
+    // ha vannak bekapcsolt filter gombok, akkor mindegyiknek 'x'-nek kell lennie
+    return Array.from(enabledFilters).every(
+      cat => (r[cat] || '').toLowerCase() === 'x'
+    );
+  });
 
-        }).join('');
+  container.innerHTML = filtered.map(r => {
+    const url = (r['URL'] || '').trim();
+    const img = (r['Kép'] || '').trim();
+    const ingredients = (r['Hozzávalók'] || '').trim();
+    const description = (r['Leírás'] || '').trim();
+    const hashtags = (r['Hashtagek'] || '').trim();
+
+    let imgSrc = "";
+    let useZoom = false;
+
+    if (img && img.startsWith('http')) {
+      imgSrc = img;
+      if (img.includes('wordpress.com')) useZoom = true;
+    } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const vid = url.match(/(?:v=|be\/|embed\/)([\w-]{11})/);
+      if (vid) imgSrc = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
     }
+
+    // AKTÍV CÍMKÉK LISTÁJA (kártya aljához)
+    const activeTags = CATEGORIES.filter(
+      cat => (r[cat] || '').toLowerCase() === 'x'
+    );
+
+    return `
+<div class="recipe-card">
+  <div class="recipe-img-container">
+    <div class="recipe-placeholder">🥘</div>
+    ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
+  </div>
+  <div class="recipe-content">
+    <h2 class="recipe-title">${r['Recept neve']}</h2>
+    ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
+    <div class="recipe-details">
+      ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
+      ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
+      ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
+      ${
+        activeTags.length
+          ? `<div class="recipe-tags">
+               ${activeTags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
+             </div>`
+          : ''
+      }
+    </div>
+  </div>
+</div>`;
+  }).join('');
+}
+
 
     document.getElementById('searchInput').addEventListener('input', render);
     init();
