@@ -123,130 +123,9 @@
       color: #1e3a8a;
       border-color: #bfdbfe;
       font-weight: 600;
-    }
-
-    .search-box {
-      width: 100%;
-      padding: 16px 24px;
-      border: 2px solid #e2e8f0;
-      border-radius: 14px;
-      margin-bottom: 12px;
-      font-size: 1.1rem;
-      outline: none;
-    }
-
-    .filter-item {
-      background: #f1f5f9;
-      padding: 8px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid #e2e8f0;
-      color: var(--text-muted);
-      transition: 0.2s;
-    }
-    .filter-item.active { background: var(--primary); color: white; border-color: var(--primary); }
-    .filter-item input { display: none; }
-
-    .recipes { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-
-    .recipe-card {
-      background: var(--card-bg);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      border: 1px solid #f1f5f9;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-
-    .recipe-img-container {
-      width: 100%;
-      height: 260px;
-      background: #000;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
     .recipe-img { width: 100%; height: 100%; object-fit: cover; z-index: 1; position: relative; }
     .img-zoom { transform: scale(2.2); object-position: center center; }
     .recipe-placeholder { font-size: 3.5rem; position: absolute; z-index: 0; opacity: 0.7; }
-
-    .recipe-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
-    .recipe-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 12px; line-height: 1.3; color: var(--text-main); }
-    .recipe-link { display: block; background: var(--primary); color: white; text-decoration: none; padding: 12px; border-radius: 12px; text-align: center; font-weight: 700; margin-bottom: 10px; transition: 0.2s; }
-    .recipe-link:hover { background: #1d4ed8; }
-
-    .recipe-details {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      transition: max-height 0.5s ease-in-out, opacity 0.3s ease;
-    }
-    .recipe-card:hover .recipe-details {
-      max-height: 5000px;
-      opacity: 1;
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px dashed #e2e8f0;
-    }
-    .recipe-text {
-      font-size: 0.9rem;
-      color: var(--text-main);
-      white-space: pre-line;
-      margin-bottom: 15px;
-      line-height: 1.5;
-      text-align: justify;
-    }
-    .section-title { font-weight: 700; font-size: 0.75rem; color: var(--primary); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; }
-
-    .recipe-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .recipe-tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      background: #e2e8f0;
-      color: var(--text-muted);
-      border: 1px solid #cbd5f5;
-    }
-
-    .active-filters-bar {
-      margin-top: 10px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-
-    .active-filter-label { font-weight: 600; margin-right: 4px; }
-
-    .active-filter-chip {
-      display: inline-flex;
-      align-items: center;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #e2e8f0;
-      color: var(--text-main);
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-
-    .active-filter-chip span { margin-left: 4px; font-weight: 700; }
-
     .fav-btn {
       position: absolute;
       top: 10px;
@@ -304,42 +183,134 @@
         <button id="sortToggleBtn" class="sort-toggle-btn">
           Alap rendezés (ABC)
         </button>
-        <button id="clearFilters" class="clear-filters-btn">Összes törlése</button>
-      </div>
+  let sortMode = 'alpha'; // 'alpha' | 'latest'
 
-      <div class="filter-grid-5">
-        <div class="filter-section">
-          <div class="filter-section-title">Elkészítés módja:</div>
-          <div class="filter-grid" id="filterPrep"></div>
-        </div>
+  function parseCSV(text) {
+    const result = [];
+    let row = [];
+    let col = "";
+    let inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i+1];
+      if (char === '"' && inQuotes && nextChar === '"') { col += '"'; i++; }
+      else if (char === '"') { inQuotes = !inQuotes; }
+      else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ""; }
+      else if (char === '\n' && !inQuotes) { row.push(col.trim()); result.push(row); row = []; col = ""; }
+      else { col += char; }
+    }
+    if (col || row.length) { row.push(col.trim()); result.push(row); }
+    return result;
+  }
 
-        <div class="filter-section">
-          <div class="filter-section-title">Konyha / Ízvilág:</div>
-          <div class="filter-grid" id="filterCuisine"></div>
-        </div>
+  function getIdNumber(r) {
+    const id = r['ID'];
+    if (!id) return null;
+    const n = Number(id);
+    return isNaN(n) ? null : n;
+  }
 
-        <div class="filter-section">
-          <div class="filter-section-title">Fogástípusok:</div>
-          <div class="filter-grid" id="filterCourse"></div>
-        </div>
+  function applySorting() {
+    if (sortMode === 'latest') {
+      allRecipes.sort((a, b) => {
+        const na = getIdNumber(a);
+        const nb = getIdNumber(b);
+        if (na === null && nb === null) return a['Recept neve'].localeCompare(b['Recept neve'], 'hu');
+        if (na === null) return 1;
+        if (nb === null) return -1;
+        return nb - na; // nagyobb ID elöl
+      });
+    } else {
+      allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
+    }
+  }
 
-        <div class="filter-section">
-          <div class="filter-section-title">Fő összetevők:</div>
-          <div class="filter-grid" id="filterMain"></div>
-        </div>
+  async function init() {
+    createFilterButtons();
+    try {
+      const response = await fetch(SHEET_URL + '&cb=' + Date.now());
+      const text = await response.text();
+      const data = parseCSV(text);
+      const headers = data[0];
 
-        <div class="filter-section">
-          <div class="filter-section-title">Egyéb:</div>
-          <div class="filter-grid" id="filterOther"></div>
-        </div>
-      </div>
-    </div>
+      allRecipes = data.slice(1).map(row => {
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = row[i]);
+        return obj;
+      }).filter(r => r['Recept neve'] && r['Recept neve'].length > 1);
 
-    <div id="activeFiltersBar" class="active-filters-bar"></div>
-  </div>
+      applySorting();
+      if (label && label.textContent.trim() === cat && cb.checked) {
+      const modeText = sortMode === 'latest' ? 'Legutóbb hozzáadva (időrendben)' : 'ABC szerinti';
+      statusBar.innerText =
+        visible === total
+          ? `${total} recept betöltve • Rendezés: ${modeText}`
+          : `${total} recept betöltve • ${visible} találat a szűrésre • Rendezés: ${modeText}`;
+    }
 
-  <div id="recipesContainer" class="recipes"></div>
-</div>
+    const activeBar = document.getElementById('activeFiltersBar');
+    if (activeBar) {
+      const parts = [];
+      const searchValue = document.getElementById('searchInput').value.trim();
+
+      if (searchValue) {
+        parts.push(
+          `<div class="active-filter-chip" onclick="clearSearchFilter()">
+             Keresés: "${searchValue}" <span>×</span>
+           </div>`
+        );
+      }
+
+      if (enabledFilters.size > 0) {
+        parts.push(`<span class="active-filter-label">Aktív címkék:</span>`);
+        enabledFilters.forEach(cat => {
+          parts.push(
+            `<div class="active-filter-chip" onclick="removeFilter('${cat}')">
+               ${cat} <span>×</span>
+             </div>`
+          );
+        });
+      }
+
+      activeBar.innerHTML =
+        !searchValue && enabledFilters.size === 0 ? '' : parts.join('');
+  const sortToggleBtn = document.getElementById('sortToggleBtn');
+
+  filterToggleBtn.addEventListener('click', () => {
+    const isOpen = filterPanel.classList.toggle('open');
+    filterToggleBtn.textContent = isOpen ? 'Szűrők elrejtése' : 'Szűrők megjelenítése';
+  });
+
+  clearFiltersBtn.addEventListener('click', () => {
+    document.getElementById('searchInput').value = '';
+    document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => {
+      cb.checked = false;
+      cb.parentElement.classList.remove('active');
+    });
+    enabledFilters.clear();
+    render();
+  });
+
+  sortToggleBtn.addEventListener('click', () => {
+    sortMode = sortMode === 'alpha' ? 'latest' : 'alpha';
+    sortToggleBtn.classList.toggle('active', sortMode === 'latest');
+    sortToggleBtn.textContent = sortMode === 'latest'
+      ? 'Legutóbb hozzáadva (ID)'
+      : 'Alap rendezés (ABC)';
+    applySorting();
+    render();
+  });
+
+  function setupInitialFilterPanelState() {
+    filterPanel.classList.remove('open');
+    filterToggleBtn.textContent = 'Szűrők megjelenítése';
+  }
+
+  init();
+  setupInitialFilterPanelState();
+</script>
+</body>
+</html>
 
 <script>
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX
