@@ -505,7 +505,7 @@
     if (statusBar) {
       const total = allRecipes.length;
       const visible = filtered.length;
-      const modeText = sortMode === 'latest' ? 'Legutóbb hozzáadva (ID)' : 'ABC szerinti';
+      const modeText = sortMode === 'latest' ? 'Legutóbb hozzáadva (időrendben)' : 'ABC szerinti';
       statusBar.innerText =
         visible === total
           ? `${total} recept betöltve • Rendezés: ${modeText}`
