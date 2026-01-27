@@ -21,6 +21,33 @@
       margin-bottom: 40px;
     }
 
+    .controls-top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .sort-toggle-btn {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .sort-toggle-btn.active {
+      background: #e5f0ff;
+      color: #1e3a8a;
+      border-color: #bfdbfe;
+      font-weight: 600;
+    }
+
     .filter-toggle {
       width: 100%;
       padding: 10px 14px;
@@ -226,6 +253,7 @@
 
     .active-filter-chip span { margin-left: 4px; font-weight: 700; }
 
+    /* Kedvenc csillag – kör és háttér nélkül, a kép jobb felső sarkában */
     .fav-btn {
       position: absolute;
       top: 10px;
@@ -274,6 +302,12 @@
   </header>
 
   <div class="controls">
+    <div class="controls-top-row">
+      <button id="sortToggleBtn" class="sort-toggle-btn">
+        Alap rendezés (ABC)
+      </button>
+    </div>
+
     <button id="filterToggle" class="filter-toggle">
       Szűrők megjelenítése
     </button>
@@ -352,6 +386,7 @@
   let allRecipes = [];
   let enabledFilters = new Set();
   let favoriteIds = new Set();
+  let sortMode = 'alpha'; // 'alpha' | 'latest'
 
   function parseCSV(text) {
     const result = [];
@@ -371,6 +406,35 @@
     return result;
   }
 
+  function parseIdToDate(idStr) {
+    if (!idStr) return null;
+    // ha a Sheet-ben már számmá alakított időbélyeg (pl. 202501271230), vagy Date-ként exportált,
+    // akkor a Number() + new Date(...) ad használható értéket
+    const n = Number(idStr);
+    if (!isNaN(n) && n > 0) {
+      const d = new Date(n);
+      if (!isNaN(d.getTime())) return d;
+    }
+    // ha ISO / normál dátum string
+    const d2 = new Date(idStr);
+    return isNaN(d2.getTime()) ? null : d2;
+  }
+
+  function applySorting() {
+    if (sortMode === 'latest') {
+      allRecipes.sort((a, b) => {
+        const da = parseIdToDate(a['ID']);
+        const db = parseIdToDate(b['ID']);
+        if (!da && !db) return a['Recept neve'].localeCompare(b['Recept neve'], 'hu');
+        if (!da) return 1;
+        if (!db) return -1;
+        return db.getTime() - da.getTime(); // legújabb elöl
+      });
+    } else {
+      allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
+    }
+  }
+
   async function init() {
     createFilterButtons();
     try {
@@ -385,7 +449,7 @@
         return obj;
       }).filter(r => r['Recept neve'] && r['Recept neve'].length > 1);
 
-      allRecipes.sort((a, b) => a['Recept neve'].localeCompare(b['Recept neve'], 'hu'));
+      applySorting();
       document.getElementById('status-bar').innerText = `${allRecipes.length} recept betöltve`;
       render();
     } catch (err) {
@@ -409,253 +473,4 @@
       'Köret'
     ];
 
-    const groupCourse = [
-      'Köret',
-      'Saláta',
-      'Főétel',
-      'Reggeli / Vacsora',
-      'Leves',
-      'Édes desszert',
-      'Sós desszert',
-      'Ital',
-      'Egyéb'
-    ];
-
-    const groupMain = [
-      'Vegetáriánus',
-      'Csirke',
-      'Halak és rákok',
-      'Marha / Sertés'
-    ];
-
-    const groupOther = [
-      'Tippek és trükkök',
-      'Diétás',
-      'Gyors',
-      'Egyszerű'
-    ];
-
-    const makeButtons = (cats, containerId) => {
-      const grid = document.getElementById(containerId);
-      if (!grid) return;
-      grid.innerHTML = cats.map(cat =>
-        `<label class="filter-item">
-           <input type="checkbox" onchange="toggleFilter('${cat}', this)">
-           ${cat}
-         </label>`
-      ).join('');
-    };
-
-    makeButtons(groupPrep, 'filterPrep');
-    makeButtons(groupCuisine, 'filterCuisine');
-    makeButtons(groupCourse, 'filterCourse');
-    makeButtons(groupMain, 'filterMain');
-    makeButtons(groupOther, 'filterOther');
-  }
-
-  function toggleFilter(cat, checkbox) {
-    checkbox.checked ? enabledFilters.add(cat) : enabledFilters.delete(cat);
-    checkbox.parentElement.classList.toggle('active', checkbox.checked);
-    render();
-  }
-
-  function toggleFavorite(id) {
-    if (!id) return;
-    if (favoriteIds.has(id)) {
-      favoriteIds.delete(id);
-    } else {
-      favoriteIds.add(id);
-    }
-    render();
-  }
-
-  function clearSearchFilter() {
-    const input = document.getElementById('searchInput');
-    if (!input) return;
-    input.value = '';
-    render();
-  }
-
-  function removeFilter(cat) {
-    const checkboxes = document.querySelectorAll('.filter-panel input[type="checkbox"]');
-    checkboxes.forEach(cb => {
-      const label = cb.parentElement;
-      if (label && label.textContent.trim() === cat) {
-        if (cb.checked) {
-          cb.checked = false;
-          label.classList.remove('active');
-          enabledFilters.delete(cat);
-        }
-      }
-    });
-    render();
-  }
-
-  function render() {
-    const container = document.getElementById('recipesContainer');
-    const search = document.getElementById('searchInput').value.toLowerCase().trim();
-
-    const filtered = allRecipes.filter(r => {
-      const activeTags = CATEGORIES
-        .filter(cat => (r[cat] || '').toLowerCase() === 'x')
-        .join(' ');
-
-      const content = `
-        ${r['Recept neve'] || ''}
-        ${r['Hozzávalók'] || ''}
-        ${r['Leírás'] || ''}
-        ${r['Hashtagek'] || ''}
-        ${activeTags}
-      `.toLowerCase();
-
-      const matchesSearch = search === '' ? true : content.includes(search);
-      if (!matchesSearch) return false;
-
-      if (enabledFilters.size === 0) return true;
-
-      return Array.from(enabledFilters).every(
-        cat => (r[cat] || '').toLowerCase() === 'x'
-      );
-    });
-
-    const statusBar = document.getElementById('status-bar');
-    if (statusBar) {
-      const total = allRecipes.length;
-      const visible = filtered.length;
-      if (visible === total) {
-        statusBar.innerText = `${total} recept betöltve`;
-      } else {
-        statusBar.innerText = `${total} recept betöltve • ${visible} találat a szűrésre`;
-      }
-    }
-
-    const activeBar = document.getElementById('activeFiltersBar');
-    if (activeBar) {
-      const parts = [];
-      const searchValue = document.getElementById('searchInput').value.trim();
-
-      if (searchValue) {
-        parts.push(
-          `<div class="active-filter-chip" onclick="clearSearchFilter()">
-             Keresés: "${searchValue}" <span>×</span>
-           </div>`
-        );
-      }
-
-      if (enabledFilters.size > 0) {
-        parts.push(`<span class="active-filter-label">Aktív címkék:</span>`);
-        enabledFilters.forEach(cat => {
-          parts.push(
-            `<div class="active-filter-chip" onclick="removeFilter('${cat}')">
-               ${cat} <span>×</span>
-             </div>`
-          );
-        });
-      }
-
-      if (!searchValue && enabledFilters.size === 0) {
-        activeBar.innerHTML = '';
-      } else {
-        activeBar.innerHTML = parts.join('');
-      }
-    }
-
-    if (filtered.length === 0) {
-      container.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align:center; padding:40px 20px; color: var(--text-muted);">
-          Nincs ilyen recept a jelenlegi keresésre és szűrőkre.
-          <br>
-          Próbálj kevesebb szűrőt vagy másik kulcsszót.
-        </div>
-      `;
-      return;
-    }
-
-    container.innerHTML = filtered.map(r => {
-      const url = (r['URL'] || '').trim();
-      const img = (r['Kép'] || '').trim();
-      const ingredients = (r['Hozzávalók'] || '').trim();
-      const description = (r['Leírás'] || '').trim();
-      const hashtags = (r['Hashtagek'] || '').trim();
-
-      let imgSrc = "";
-      let useZoom = false;
-
-      if (img && img.startsWith('http')) {
-        imgSrc = img;
-        if (img.includes('wordpress.com')) useZoom = true;
-      } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-        const vid = url.match(/(?:v=|be\/|embed\/)([\w-]{11})/);
-        if (vid) imgSrc = `https://img.youtube.com/vi/${vid[1]}/mqdefault.jpg`;
-      }
-
-      const activeTags = CATEGORIES.filter(
-        cat => (r[cat] || '').toLowerCase() === 'x'
-      );
-
-      const isFav = r['ID'] && favoriteIds.has(r['ID'].toString());
-
-      return `
-        <div class="recipe-card">
-          <div class="recipe-img-container">
-            <div class="recipe-placeholder">🥘</div>
-            ${imgSrc ? `<img src="${imgSrc}" class="recipe-img ${useZoom ? 'img-zoom' : ''}" loading="lazy" onerror="this.style.display='none'">` : ''}
-            ${r['ID'] ? `
-              <button class="fav-btn ${isFav ? 'fav-active' : ''}"
-                      onclick="toggleFavorite('${r['ID'].toString()}')"
-                      title="Kedvenc jelölése / levétele">
-                <span class="fav-icon">★</span>
-              </button>` : ''}
-          </div>
-          <div class="recipe-content">
-            <h2 class="recipe-title">${r['Recept neve']}</h2>
-            ${url ? `<a href="${url}" target="_blank" class="recipe-link">Megnyitás</a>` : ''}
-
-            <div class="recipe-details">
-              ${hashtags ? `<div style="font-size:0.8rem; color:var(--primary); margin-bottom:10px;">${hashtags}</div>` : ''}
-              ${ingredients ? `<div class="section-title">Hozzávalók:</div><div class="recipe-text">${ingredients}</div>` : ''}
-              ${description ? `<div class="section-title">Elkészítés:</div><div class="recipe-text">${description}</div>` : ''}
-              ${
-                activeTags.length
-                  ? `<div class="recipe-tags">
-                       ${activeTags.map(tag => `<span class="recipe-tag">${tag}</span>`).join('')}
-                     </div>`
-                  : ''
-              }
-            </div>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  document.getElementById('searchInput').addEventListener('input', render);
-
-  const filterToggleBtn = document.getElementById('filterToggle');
-  const filterPanel = document.getElementById('filterPanel');
-  const clearFiltersBtn = document.getElementById('clearFilters');
-
-  filterToggleBtn.addEventListener('click', () => {
-    const isOpen = filterPanel.classList.toggle('open');
-    filterToggleBtn.textContent = isOpen ? 'Szűrők elrejtése' : 'Szűrők megjelenítése';
-  });
-
-  clearFiltersBtn.addEventListener('click', () => {
-    document.getElementById('searchInput').value = '';
-    document.querySelectorAll('.filter-panel input[type="checkbox"]').forEach(cb => {
-      cb.checked = false;
-      cb.parentElement.classList.remove('active');
-    });
-    enabledFilters.clear();
-    render();
-  });
-
-  function setupInitialFilterPanelState() {
-    filterPanel.classList.remove('open');
-    filterToggleBtn.textContent = 'Szűrők megjelenítése';
-  }
-
-  init();
-  setupInitialFilterPanelState();
-</script>
-</body>
-</html>
+    const g
