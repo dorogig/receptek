@@ -257,9 +257,17 @@
       background: rgba(0, 0, 0, 0.5);
     }
 
-    .fav-btn.fav-active {
-      border-color: rgba(251, 191, 36, 0.9);
-      background: rgba(0, 0, 0, 0.5);
+    /* Aktív (kedvenc) állapot: sárga kitöltés, lágy arany izzással */
+    .fav-btn.fav-active .fav-icon {
+      color: #fbbf24; /* A jól megszokott sárga szín */
+      
+      /* Az izzás titka: több rétegű drop-shadow */
+      filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.4)) 
+              drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+      
+      /* Opcionális: Egy kis lüktetés, amikor aktiválódik */
+      transform: scale(1.1);
+      transition: all 0.2s ease-in-out;
     }
 
     .fav-btn.fav-active .fav-icon {
